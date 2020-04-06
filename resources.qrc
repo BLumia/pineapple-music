@@ -9,5 +9,7 @@
         <file>icons/view-media-playlist.png</file>
         <file>icons/window-close.png</file>
         <file>icons/window-minimize.png</file>
+        <file>icons/media-playback-pause.png</file>
+        <file>icons/audio-volume-muted.png</file>
     </qresource>
 </RCC>

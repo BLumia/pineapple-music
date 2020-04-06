@@ -88,7 +88,11 @@ QPushButton#closeWindowBtn:hover {
 
 /****** Label ******/
 
-QLabel#coverLabel{
+QLabel {
+	color: white;
+}
+
+QLabel#coverLabel {
 	border: 1px solid grey;
 }</string>
   </property>
@@ -280,6 +284,9 @@ QLabel#coverLabel{
           </item>
           <item>
            <widget class="SeekableSlider" name="playbackSlider">
+            <property name="maximum">
+             <number>1000</number>
+            </property>
             <property name="orientation">
              <enum>Qt::Horizontal</enum>
             </property>
@@ -504,8 +511,11 @@ QLabel#coverLabel{
                 <height>32</height>
                </size>
               </property>
+              <property name="maximum">
+               <number>100</number>
+              </property>
               <property name="value">
-               <number>99</number>
+               <number>100</number>
               </property>
               <property name="orientation">
                <enum>Qt::Horizontal</enum>
