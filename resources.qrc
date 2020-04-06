@@ -1,0 +1,13 @@
+<RCC>
+    <qresource prefix="/icons">
+        <file>icons/media-playback-start.png</file>
+        <file>icons/media-playback-stop.png</file>
+        <file>icons/media-skip-backward.png</file>
+        <file>icons/media-skip-forward.png</file>
+        <file>icons/audio-volume-high.png</file>
+        <file>icons/media-playlist-repeat.png</file>
+        <file>icons/view-media-playlist.png</file>
+        <file>icons/window-close.png</file>
+        <file>icons/window-minimize.png</file>
+    </qresource>
+</RCC>
