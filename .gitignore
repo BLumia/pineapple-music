@@ -71,3 +71,7 @@ Thumbs.db
 *.dll
 *.exe
 
+# User Config
+# -----------
+*.user
+*.user.*
