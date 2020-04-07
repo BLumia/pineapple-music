@@ -1,6 +1,8 @@
 #include "mainwindow.h"
 #include "./ui_mainwindow.h"
 
+#include "playlistmodel.h"
+
 #include <QPainter>
 #include <QMediaPlayer>
 #include <QMediaPlaylist>
@@ -9,11 +11,14 @@
 #include <QTime>
 #include <QStyle>
 #include <QScreen>
+#include <QListView>
+#include <QCollator>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
     , m_mediaPlayer(new QMediaPlayer(this))
+    , m_playlistModel(new PlaylistModel(this))
 {
     ui->setupUi(this);
 
@@ -29,6 +34,45 @@ MainWindow::MainWindow(QWidget *parent)
 MainWindow::~MainWindow()
 {
     delete ui;
+}
+
+void MainWindow::commandlinePlayAudioFiles(QList<QUrl> audioFiles)
+{
+    if (!audioFiles.isEmpty()) {
+        if (audioFiles.count() == 1) {
+            loadPlaylistBySingleLocalFile(audioFiles.first().toLocalFile());
+        } else {
+            createPlaylist(audioFiles);
+        }
+        m_mediaPlayer->play();
+    }
+}
+
+void MainWindow::loadPlaylistBySingleLocalFile(const QString &path)
+{
+    QFileInfo info(path);
+    QDir dir(info.path());
+    QString currentFileName = info.fileName();
+    QStringList entryList = dir.entryList({"*.mp3", "*.wav", "*.aiff", "*.ape", "*.flac", "*.ogg", "*.oga"},
+                                          QDir::Files | QDir::NoSymLinks, QDir::NoSort);
+
+    QCollator collator;
+    collator.setNumericMode(true);
+
+    std::sort(entryList.begin(), entryList.end(), collator);
+
+    QList<QUrl> urlList;
+    int currentFileIndex = -1;
+    for (int i = 0; i < entryList.count(); i++) {
+        const QString & oneEntry = entryList.at(i);
+        urlList.append(QUrl::fromLocalFile(dir.absoluteFilePath(oneEntry)));
+        if (oneEntry == currentFileName) {
+            currentFileIndex = i;
+        }
+    }
+
+    QMediaPlaylist * playlist = createPlaylist(urlList);
+    playlist->setCurrentIndex(currentFileIndex);
 }
 
 void MainWindow::closeEvent(QCloseEvent *)
@@ -86,16 +130,33 @@ void MainWindow::loadFile()
                                                       tr("Select songs to play"),
                                                       QDir::homePath(),
                                                       tr("Audio Files") + " (*.mp3 *.wav *.aiff *.ape *.flac *.ogg *.oga)");
+    QList<QUrl> urlList;
+    for (const QString & fileName : files) {
+        urlList.append(QUrl::fromLocalFile(fileName));
+    }
+
+    createPlaylist(urlList);
+}
+
+/*
+ * The returned QMediaPlaylist* ownership belongs to the internal QMediaPlayer instance.
+ */
+QMediaPlaylist *MainWindow::createPlaylist(QList<QUrl> urlList)
+{
     QMediaPlaylist * playlist = new QMediaPlaylist(m_mediaPlayer);
     playlist->setPlaybackMode(QMediaPlaylist::CurrentItemInLoop);
-    for (const QString & fileName : files) {
-        bool succ = playlist->addMedia(QMediaContent(QUrl::fromLocalFile(fileName)));
+
+    for (const QUrl & url : urlList) {
+        bool succ = playlist->addMedia(QMediaContent(url));
         if (!succ) {
             qDebug("!!!!!!!!! break point time !!!!!!!!!");
         }
     }
 
     m_mediaPlayer->setPlaylist(playlist);
+    m_playlistModel->setPlaylist(playlist);
+
+    return playlist;
 }
 
 void MainWindow::centerWindow()
@@ -208,12 +269,22 @@ void MainWindow::initUiAndAnimation()
     m_fadeOutAnimation->setStartValue(1);
     m_fadeOutAnimation->setEndValue(0);
     connect(m_fadeOutAnimation, &QPropertyAnimation::finished, this, &QMainWindow::close);
+
+    // temp: a playlist for debug...
+    QListView * tmp_listview = new QListView(ui->pluginWidget);
+    tmp_listview->setModel(m_playlistModel);
+    tmp_listview->setGeometry({0,0,490,250});
+    this->setGeometry({0,0,490,160}); // temp size, hide the playlist thing.
 }
 
 void MainWindow::initConnections()
 {
     connect(m_mediaPlayer, &QMediaPlayer::currentMediaChanged, this, [=](const QMediaContent &media) {
+#if QT_VERSION < QT_VERSION_CHECK(5, 14, 0)
+        ui->titleLabel->setText(media.canonicalUrl().fileName());
+#else
         ui->titleLabel->setText(media.request().url().fileName());
+#endif // QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
     });
 
     connect(m_mediaPlayer, &QMediaPlayer::positionChanged, this, [=](qint64 pos) {

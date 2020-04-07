@@ -19,6 +19,8 @@ add_executable(pineapple-music
   mainwindow.h
   seekableslider.cpp
   seekableslider.h
+  playlistmodel.h
+  playlistmodel.cpp
   mainwindow.ui
   resources.qrc
 )
