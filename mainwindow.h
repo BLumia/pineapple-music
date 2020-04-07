@@ -26,6 +26,7 @@ protected:
     void mouseReleaseEvent(QMouseEvent *event) override;
 
     void loadFile();
+    void centerWindow();
 
 private slots:
     void on_closeWindowBtn_clicked();
@@ -53,6 +54,9 @@ private:
 
     QMediaPlayer *m_mediaPlayer;
     QPropertyAnimation *m_fadeOutAnimation;
+
+    void initUiAndAnimation();
+    void initConnections();
 
     static QString ms2str(qint64 ms);
 };

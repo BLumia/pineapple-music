@@ -7,6 +7,8 @@
 #include <QPropertyAnimation>
 #include <QFileDialog>
 #include <QTime>
+#include <QStyle>
+#include <QScreen>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -18,55 +20,10 @@ MainWindow::MainWindow(QWidget *parent)
     this->setWindowFlags(Qt::FramelessWindowHint | Qt::WindowSystemMenuHint | Qt::WindowMinimizeButtonHint);
     this->setAttribute(Qt::WA_TranslucentBackground, true);
 
-    connect(m_mediaPlayer, &QMediaPlayer::currentMediaChanged, this, [=](const QMediaContent &media) {
-        ui->titleLabel->setText(media.canonicalUrl().fileName());
-    });
+    initConnections();
+    initUiAndAnimation();
 
-    connect(m_mediaPlayer, &QMediaPlayer::positionChanged, this, [=](qint64 pos) {
-        ui->nowTimeLabel->setText(ms2str(pos));
-        if (m_mediaPlayer->duration() != 0) {
-            ui->playbackSlider->setSliderPosition(ui->playbackSlider->maximum() * pos / m_mediaPlayer->duration());
-        }
-    });
-
-    connect(m_mediaPlayer, &QMediaPlayer::mutedChanged, this, [=](bool muted) {
-        if (muted) {
-            ui->volumeBtn->setIcon(QIcon(":/icons/icons/audio-volume-muted.png"));
-        } else {
-            ui->volumeBtn->setIcon(QIcon(":/icons/icons/audio-volume-high.png"));
-        }
-    });
-
-    connect(m_mediaPlayer, &QMediaPlayer::durationChanged, this, [=](qint64 dua) {
-        ui->totalTimeLabel->setText(ms2str(dua));
-    });
-
-    connect(m_mediaPlayer, &QMediaPlayer::stateChanged, this, [=](QMediaPlayer::State newState) {
-        switch (newState) {
-        case QMediaPlayer::PlayingState:
-            ui->playBtn->setIcon(QIcon(":/icons/icons/media-playback-pause.png"));
-            break;
-        case QMediaPlayer::StoppedState:
-        case QMediaPlayer::PausedState:
-            ui->playBtn->setIcon(QIcon(":/icons/icons/media-playback-start.png"));
-            break;
-        }
-    });
-
-    connect(m_mediaPlayer, &QMediaPlayer::volumeChanged, this, [=](int vol) {
-        ui->volumeSlider->setValue(vol);
-    });
-
-    m_bgLinearGradient.setColorAt(0, QColor(255, 255, 255, 25)); // a:0
-    m_bgLinearGradient.setColorAt(1, QColor(255, 255, 255, 75)); // a:200
-    m_bgLinearGradient.setStart(0, 0);
-    m_bgLinearGradient.setFinalStop(0, height());
-
-    m_fadeOutAnimation = new QPropertyAnimation(this, "windowOpacity", this);
-    m_fadeOutAnimation->setDuration(400);
-    m_fadeOutAnimation->setStartValue(1);
-    m_fadeOutAnimation->setEndValue(0);
-    connect(m_fadeOutAnimation, &QPropertyAnimation::finished, this, &QMainWindow::close);
+    centerWindow();
 }
 
 MainWindow::~MainWindow()
@@ -132,13 +89,25 @@ void MainWindow::loadFile()
     QMediaPlaylist * playlist = new QMediaPlaylist(m_mediaPlayer);
     playlist->setPlaybackMode(QMediaPlaylist::CurrentItemInLoop);
     for (const QString & fileName : files) {
-        bool succ = playlist->addMedia(QMediaContent(fileName));
+        bool succ = playlist->addMedia(QMediaContent(QUrl::fromLocalFile(fileName)));
         if (!succ) {
             qDebug("!!!!!!!!! break point time !!!!!!!!!");
         }
     }
 
     m_mediaPlayer->setPlaylist(playlist);
+}
+
+void MainWindow::centerWindow()
+{
+    this->setGeometry(
+        QStyle::alignedRect(
+            Qt::LeftToRight,
+            Qt::AlignCenter,
+            this->size(),
+            qApp->screenAt(QCursor::pos())->geometry()
+        )
+    );
 }
 
 void MainWindow::on_closeWindowBtn_clicked()
@@ -225,4 +194,69 @@ void MainWindow::on_volumeBtn_clicked()
 void MainWindow::on_minimumWindowBtn_clicked()
 {
     this->showMinimized();
+}
+
+void MainWindow::initUiAndAnimation()
+{
+    m_bgLinearGradient.setColorAt(0, QColor(255, 255, 255, 25)); // a:0
+    m_bgLinearGradient.setColorAt(1, QColor(255, 255, 255, 75)); // a:200
+    m_bgLinearGradient.setStart(0, 0);
+    m_bgLinearGradient.setFinalStop(0, height());
+
+    m_fadeOutAnimation = new QPropertyAnimation(this, "windowOpacity", this);
+    m_fadeOutAnimation->setDuration(400);
+    m_fadeOutAnimation->setStartValue(1);
+    m_fadeOutAnimation->setEndValue(0);
+    connect(m_fadeOutAnimation, &QPropertyAnimation::finished, this, &QMainWindow::close);
+}
+
+void MainWindow::initConnections()
+{
+    connect(m_mediaPlayer, &QMediaPlayer::currentMediaChanged, this, [=](const QMediaContent &media) {
+        ui->titleLabel->setText(media.request().url().fileName());
+    });
+
+    connect(m_mediaPlayer, &QMediaPlayer::positionChanged, this, [=](qint64 pos) {
+        ui->nowTimeLabel->setText(ms2str(pos));
+        if (m_mediaPlayer->duration() != 0) {
+            ui->playbackSlider->setSliderPosition(ui->playbackSlider->maximum() * pos / m_mediaPlayer->duration());
+        }
+    });
+
+    connect(m_mediaPlayer, &QMediaPlayer::mutedChanged, this, [=](bool muted) {
+        if (muted) {
+            ui->volumeBtn->setIcon(QIcon(":/icons/icons/audio-volume-muted.png"));
+        } else {
+            ui->volumeBtn->setIcon(QIcon(":/icons/icons/audio-volume-high.png"));
+        }
+    });
+
+    connect(m_mediaPlayer, &QMediaPlayer::durationChanged, this, [=](qint64 dua) {
+        ui->totalTimeLabel->setText(ms2str(dua));
+    });
+
+    connect(m_mediaPlayer, &QMediaPlayer::stateChanged, this, [=](QMediaPlayer::State newState) {
+        switch (newState) {
+        case QMediaPlayer::PlayingState:
+            ui->playBtn->setIcon(QIcon(":/icons/icons/media-playback-pause.png"));
+            break;
+        case QMediaPlayer::StoppedState:
+        case QMediaPlayer::PausedState:
+            ui->playBtn->setIcon(QIcon(":/icons/icons/media-playback-start.png"));
+            break;
+        }
+    });
+
+    connect(m_mediaPlayer, &QMediaPlayer::volumeChanged, this, [=](int vol) {
+        ui->volumeSlider->setValue(vol);
+    });
+
+    connect(m_mediaPlayer, static_cast<void(QMediaPlayer::*)(QMediaPlayer::Error)>(&QMediaPlayer::error),
+            this, [=](QMediaPlayer::Error error) {
+        switch (error) {
+        default:
+            break;
+        }
+        qDebug(m_mediaPlayer->errorString().toUtf8() + "aaaaaaaaaaaaa");
+    });
 }
