@@ -1,4 +1,4 @@
-_**This is a not ready for use, toy project**_
+_**This is a not ready to use, toy project**_
 
 
 ## Note

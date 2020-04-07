@@ -48,12 +48,10 @@
 **
 ****************************************************************************/
 
-
 #ifndef PLAYLISTMODEL_H
 #define PLAYLISTMODEL_H
 
 #include <QAbstractItemModel>
-#include <QScopedPointer>
 
 class QMediaPlaylist;
 
@@ -69,7 +67,7 @@ public:
     };
 
     explicit PlaylistModel(QObject *parent = nullptr);
-    ~PlaylistModel();
+    ~PlaylistModel() override;
 
     int rowCount(const QModelIndex &parent = QModelIndex()) const override;
     int columnCount(const QModelIndex &parent = QModelIndex()) const override;
@@ -92,7 +90,7 @@ private slots:
     void changeItems(int start, int end);
 
 private:
-    QScopedPointer<QMediaPlaylist> m_playlist;
+    QMediaPlaylist * m_playlist = nullptr;
     QMap<QModelIndex, QVariant> m_data;
 };
 
