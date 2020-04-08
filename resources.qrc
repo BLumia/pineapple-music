@@ -11,5 +11,6 @@
         <file>icons/window-minimize.png</file>
         <file>icons/media-playback-pause.png</file>
         <file>icons/audio-volume-muted.png</file>
+        <file>icons/app-icon.svg</file>
     </qresource>
 </RCC>
