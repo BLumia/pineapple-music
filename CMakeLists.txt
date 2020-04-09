@@ -27,6 +27,10 @@ add_executable(${EXE_NAME}
   playlistmodel.cpp
   mainwindow.ui
   resources.qrc
+
+  # 3rd party code
+  FlacPic.h
+  ID3v2Pic.h
 )
 
 target_link_libraries(${EXE_NAME} PRIVATE Qt5::Widgets Qt5::Multimedia)

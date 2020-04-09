@@ -16,6 +16,9 @@
     <height>160</height>
    </size>
   </property>
+  <property name="acceptDrops">
+   <bool>true</bool>
+  </property>
   <property name="windowTitle">
    <string>Pineapple Player</string>
   </property>
@@ -184,6 +187,9 @@ QLabel#coverLabel {
          </property>
          <property name="text">
           <string>AlbumCover</string>
+         </property>
+         <property name="scaledContents">
+          <bool>true</bool>
          </property>
         </widget>
        </item>

@@ -3,6 +3,9 @@
 
 #include "playlistmodel.h"
 
+#include "ID3v2Pic.h"
+#include "FlacPic.h"
+
 #include <QPainter>
 #include <QMediaPlayer>
 #include <QMediaPlaylist>
@@ -13,6 +16,7 @@
 #include <QScreen>
 #include <QListView>
 #include <QCollator>
+#include <QMimeData>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -122,6 +126,31 @@ void MainWindow::mouseReleaseEvent(QMouseEvent *event)
     m_clickedOnWindow = false;
 
     return QMainWindow::mouseReleaseEvent(event);
+}
+
+void MainWindow::dragEnterEvent(QDragEnterEvent *e)
+{
+    // TODO: file/format filter?
+
+    e->acceptProposedAction();
+}
+
+void MainWindow::dropEvent(QDropEvent *e)
+{
+    QList<QUrl> urls = e->mimeData()->urls();
+    if (urls.isEmpty()) {
+        return;
+    }
+
+    QString fileName = urls.first().toLocalFile();
+    if (fileName.isEmpty()) {
+        return;
+    }
+
+    // TODO: file/format filter?
+
+    createPlaylist(urls);
+    m_mediaPlayer->play();
 }
 
 void MainWindow::loadFile()
@@ -281,10 +310,32 @@ void MainWindow::initConnections()
 {
     connect(m_mediaPlayer, &QMediaPlayer::currentMediaChanged, this, [=](const QMediaContent &media) {
 #if QT_VERSION < QT_VERSION_CHECK(5, 14, 0)
-        ui->titleLabel->setText(media.canonicalUrl().fileName());
+        QUrl fileUrl = media.canonicalUrl();
 #else
-        ui->titleLabel->setText(media.request().url().fileName());
+        QUrl fileUrl = media.request().url();
 #endif // QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
+
+        ui->titleLabel->setText(fileUrl.fileName());
+        if (fileUrl.isLocalFile()) {
+            using namespace spID3;
+            using namespace spFLAC;
+
+            QString filePath(fileUrl.toLocalFile());
+
+            if (filePath.endsWith(".mp3")) {
+                if (spID3::loadPictureData(filePath.toLocal8Bit().data())) {
+                    QByteArray picData((const char*)spID3::getPictureDataPtr(), spID3::getPictureLength());
+                    ui->coverLabel->setPixmap(QPixmap::fromImage(QImage::fromData(picData)));
+                    spID3::freePictureData();
+                }
+            } else if (filePath.endsWith(".flac")) {
+                if (spFLAC::loadPictureData(filePath.toLocal8Bit().data())) {
+                    QByteArray picData((const char*)spFLAC::getPictureDataPtr(), spFLAC::getPictureLength());
+                    ui->coverLabel->setPixmap(QPixmap::fromImage(QImage::fromData(picData)));
+                    spFLAC::freePictureData();
+                }
+            }
+        }
     });
 
     connect(m_mediaPlayer, &QMediaPlayer::positionChanged, this, [=](qint64 pos) {
