@@ -172,8 +172,11 @@ void MainWindow::loadFile()
  */
 QMediaPlaylist *MainWindow::createPlaylist(QList<QUrl> urlList)
 {
+    if (m_mediaPlayer->playlist()) {
+        m_mediaPlayer->playlist()->disconnect();
+    }
+
     QMediaPlaylist * playlist = new QMediaPlaylist(m_mediaPlayer);
-    playlist->setPlaybackMode(QMediaPlaylist::CurrentItemInLoop);
 
     for (const QUrl & url : urlList) {
         bool succ = playlist->addMedia(QMediaContent(url));
@@ -182,6 +185,26 @@ QMediaPlaylist *MainWindow::createPlaylist(QList<QUrl> urlList)
         }
     }
 
+    connect(playlist, &QMediaPlaylist::playbackModeChanged, this, [=](QMediaPlaylist::PlaybackMode mode) {
+        switch (mode) {
+        case QMediaPlaylist::CurrentItemInLoop:
+            ui->playbackModeBtn->setIcon(QIcon(":/icons/icons/media-playlist-repeat-song.png"));
+            break;
+        case QMediaPlaylist::Loop:
+            ui->playbackModeBtn->setIcon(QIcon(":/icons/icons/media-playlist-repeat.png"));
+            break;
+        case QMediaPlaylist::Sequential:
+            ui->playbackModeBtn->setIcon(QIcon(":/icons/icons/media-playlist-normal.png"));
+            break;
+        case QMediaPlaylist::Random:
+            ui->playbackModeBtn->setIcon(QIcon(":/icons/icons/media-playlist-shuffle.png"));
+            break;
+        default:
+            break;
+        }
+    });
+
+    playlist->setPlaybackMode(QMediaPlaylist::CurrentItemInLoop);
     m_mediaPlayer->setPlaylist(playlist);
     m_playlistModel->setPlaylist(playlist);
 
@@ -379,6 +402,29 @@ void MainWindow::initConnections()
         default:
             break;
         }
-        qDebug(m_mediaPlayer->errorString().toUtf8() + "aaaaaaaaaaaaa");
+        qDebug("%s aaaaaaaaaaaaa", m_mediaPlayer->errorString().toUtf8().data());
     });
+}
+
+void MainWindow::on_playbackModeBtn_clicked()
+{
+    QMediaPlaylist * playlist = m_mediaPlayer->playlist();
+    if (!playlist) return;
+
+    switch (playlist->playbackMode()) {
+    case QMediaPlaylist::CurrentItemInLoop:
+        playlist->setPlaybackMode(QMediaPlaylist::Loop);
+        break;
+    case QMediaPlaylist::Loop:
+        playlist->setPlaybackMode(QMediaPlaylist::Sequential);
+        break;
+    case QMediaPlaylist::Sequential:
+        playlist->setPlaybackMode(QMediaPlaylist::Random);
+        break;
+    case QMediaPlaylist::Random:
+        playlist->setPlaybackMode(QMediaPlaylist::CurrentItemInLoop);
+        break;
+    default:
+        break;
+    }
 }

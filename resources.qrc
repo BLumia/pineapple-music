@@ -12,5 +12,9 @@
         <file>icons/media-playback-pause.png</file>
         <file>icons/audio-volume-muted.png</file>
         <file>icons/app-icon.svg</file>
+        <file>icons/media-playlist-shuffle.png</file>
+        <file>icons/media-playlist-repeat-song.png</file>
+        <file>icons/media-playlist-normal.png</file>
+        <file>icons/media-album-cover.svg</file>
     </qresource>
 </RCC>

@@ -37,6 +37,9 @@ protected:
     QMediaPlaylist *createPlaylist(QList<QUrl> urlList);
 
 private slots:
+    void on_playbackModeBtn_clicked();
+
+private slots:
     void on_closeWindowBtn_clicked();
     void on_playBtn_clicked();
     void on_volumeSlider_valueChanged(int value);
