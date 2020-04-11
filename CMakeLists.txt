@@ -13,7 +13,7 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(Qt5 COMPONENTS Widgets Multimedia REQUIRED)
+find_package(Qt5 COMPONENTS Widgets Multimedia Network REQUIRED)
 
 set (EXE_NAME pmusic)
 
@@ -35,7 +35,15 @@ add_executable(${EXE_NAME}
   ID3v2Pic.h
 )
 
-target_link_libraries(${EXE_NAME} PRIVATE Qt5::Widgets Qt5::Multimedia)
+target_link_libraries(${EXE_NAME} PRIVATE Qt5::Widgets Qt5::Multimedia Qt5::Network)
+
+# Extra build settings
+if (WIN32)
+    set_property (
+        TARGET ${EXE_NAME}
+        PROPERTY WIN32_EXECUTABLE true
+    )
+endif ()
 
 # Helper macros for install settings
 macro (pmusic_convert_to_relative_path _var)

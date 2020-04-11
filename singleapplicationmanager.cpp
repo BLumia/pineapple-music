@@ -16,6 +16,7 @@ void SingleApplicationManager::on_localSocket_newConnection()
     QScopedPointer<QLocalSocket> socket(m_localServer->nextPendingConnection());
     if (socket) {
         socket->waitForReadyRead(500);
+
         QDataStream dataStream(socket.data());
         QVariant data;
         dataStream.startTransaction();
@@ -44,11 +45,14 @@ bool SingleApplicationManager::checkSingleInstance(QVariant data)
     QLocalSocket socket;
     socket.connectToServer(m_applicationKey);
     if (socket.waitForConnected(500)) {
-        QDataStream dataStream(&socket);
-        dataStream << data;
+        QByteArray block;
+        QDataStream out(&block, QIODevice::WriteOnly);
+        out << data;
 
+        socket.write(block);
         socket.waitForBytesWritten();
-        socket.close();
+        socket.flush();
+        socket.disconnectFromServer();
 
         return true;
     }
