@@ -2,6 +2,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QVariant>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -20,8 +21,11 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow() override;
 
-    void commandlinePlayAudioFiles(QList<QUrl> audioFiles);
+    void commandlinePlayAudioFiles(QStringList audioFiles);
     void loadPlaylistBySingleLocalFile(const QString &path);
+
+public slots:
+    void localSocketPlayAudioFiles(QVariant audioFilesVariant);
 
 protected:
     void closeEvent(QCloseEvent *) override;
@@ -38,8 +42,6 @@ protected:
 
 private slots:
     void on_playbackModeBtn_clicked();
-
-private slots:
     void on_closeWindowBtn_clicked();
     void on_playBtn_clicked();
     void on_volumeSlider_valueChanged(int value);
@@ -66,5 +68,6 @@ private:
     void initConnections();
 
     static QString ms2str(qint64 ms);
+    static QList<QUrl> strlst2urllst(QStringList strlst);
 };
 #endif // MAINWINDOW_H

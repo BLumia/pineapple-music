@@ -40,13 +40,15 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-void MainWindow::commandlinePlayAudioFiles(QList<QUrl> audioFiles)
+void MainWindow::commandlinePlayAudioFiles(QStringList audioFiles)
 {
-    if (!audioFiles.isEmpty()) {
-        if (audioFiles.count() == 1) {
-            loadPlaylistBySingleLocalFile(audioFiles.first().toLocalFile());
+    QList<QUrl> audioFileUrls = strlst2urllst(audioFiles);
+
+    if (!audioFileUrls.isEmpty()) {
+        if (audioFileUrls.count() == 1) {
+            loadPlaylistBySingleLocalFile(audioFileUrls.first().toLocalFile());
         } else {
-            createPlaylist(audioFiles);
+            createPlaylist(audioFileUrls);
         }
         m_mediaPlayer->play();
     }
@@ -77,6 +79,17 @@ void MainWindow::loadPlaylistBySingleLocalFile(const QString &path)
 
     QMediaPlaylist * playlist = createPlaylist(urlList);
     playlist->setCurrentIndex(currentFileIndex);
+}
+
+void MainWindow::localSocketPlayAudioFiles(QVariant audioFilesVariant)
+{
+    QStringList urlStrList = audioFilesVariant.toStringList();
+    qDebug() << urlStrList << "MainWindow::localSocketPlayAudioFiles";
+    commandlinePlayAudioFiles(urlStrList);
+
+    showNormal();
+    activateWindow();
+    raise();
 }
 
 void MainWindow::closeEvent(QCloseEvent *)
@@ -172,11 +185,13 @@ void MainWindow::loadFile()
  */
 QMediaPlaylist *MainWindow::createPlaylist(QList<QUrl> urlList)
 {
-    if (m_mediaPlayer->playlist()) {
-        m_mediaPlayer->playlist()->disconnect();
-    }
-
+    QMediaPlaylist * oldPlaylist = m_mediaPlayer->playlist();
     QMediaPlaylist * playlist = new QMediaPlaylist(m_mediaPlayer);
+
+    if (oldPlaylist) {
+        oldPlaylist->disconnect();
+        oldPlaylist->deleteLater();
+    }
 
     for (const QUrl & url : urlList) {
         bool succ = playlist->addMedia(QMediaContent(url));
@@ -251,6 +266,19 @@ QString MainWindow::ms2str(qint64 ms)
     } else {
         return duaTime.toString("m:ss");
     }
+}
+
+QList<QUrl> MainWindow::strlst2urllst(QStringList strlst)
+{
+    QList<QUrl> urlList;
+    for (const QString & str : strlst) {
+        QUrl url = QUrl::fromLocalFile(str);
+        if (url.isValid()) {
+            urlList.append(url);
+        }
+    }
+
+    return urlList;
 }
 
 void MainWindow::on_volumeSlider_valueChanged(int value)

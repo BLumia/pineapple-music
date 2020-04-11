@@ -1,8 +1,11 @@
 #include "mainwindow.h"
 
+#include "singleapplicationmanager.h"
+
 #include <QApplication>
 #include <QCommandLineParser>
 #include <QUrl>
+#include <QDebug>
 
 int main(int argc, char *argv[])
 {
@@ -16,20 +19,22 @@ int main(int argc, char *argv[])
     parser.process(a);
 
     QStringList urlStrList = parser.positionalArguments();
-    QList<QUrl> urlList;
-    for (const QString & str : urlStrList) {
-        QUrl url = QUrl::fromLocalFile(str);
-        if (url.isValid()) {
-            urlList.append(url);
-        }
+
+    SingleApplicationManager sam("_pineapple_music_owo_");
+    if (sam.checkSingleInstance(QVariant::fromValue(urlStrList))) {
+        return 0;
+    } else {
+        sam.createSingleInstance();
     }
 
     MainWindow w;
     w.show();
 
-    if (!urlList.isEmpty()) {
-        w.commandlinePlayAudioFiles(urlList);
+    if (!urlStrList.isEmpty()) {
+        w.commandlinePlayAudioFiles(urlStrList);
     }
+
+    QObject::connect(&sam, &SingleApplicationManager::dataReached, &w, &MainWindow::localSocketPlayAudioFiles);
 
     return a.exec();
 }

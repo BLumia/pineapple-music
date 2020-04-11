@@ -25,6 +25,8 @@ add_executable(${EXE_NAME}
   seekableslider.h
   playlistmodel.h
   playlistmodel.cpp
+  singleapplicationmanager.h
+  singleapplicationmanager.cpp
   mainwindow.ui
   resources.qrc
 
