@@ -23,6 +23,7 @@ public:
 
     void commandlinePlayAudioFiles(QStringList audioFiles);
     void loadPlaylistBySingleLocalFile(const QString &path);
+    void setAudioPropertyInfoForDisplay(int sampleRate, int bitrate, int channelCount, QString audioExt);
 
 public slots:
     void localSocketPlayAudioFiles(QVariant audioFilesVariant);

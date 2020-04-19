@@ -301,7 +301,7 @@ QLabel#coverLabel {
            <item>
             <widget class="QLabel" name="propLabel">
              <property name="text">
-              <string>44100 Hz | 233 Kbps | Stereo | MP3</string>
+              <string>Drag and drop file to load</string>
              </property>
             </widget>
            </item>

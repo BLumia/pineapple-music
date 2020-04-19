@@ -6,6 +6,9 @@
 #include "ID3v2Pic.h"
 #include "FlacPic.h"
 
+// taglib
+#include <fileref.h>
+
 #include <QPainter>
 #include <QMediaPlayer>
 #include <QMediaPlaylist>
@@ -79,6 +82,43 @@ void MainWindow::loadPlaylistBySingleLocalFile(const QString &path)
 
     QMediaPlaylist * playlist = createPlaylist(urlList);
     playlist->setCurrentIndex(currentFileIndex);
+}
+
+void MainWindow::setAudioPropertyInfoForDisplay(int sampleRate, int bitrate, int channelCount, QString audioExt)
+{
+    QStringList uiStrs;
+    QStringList tooltipStrs;
+
+    auto channelStr = [](int channelCnt) {
+        switch (channelCnt) {
+        case 1:
+            return tr("Mono");
+        case 2:
+            return tr("Stereo");
+        default:
+            return tr("%1 Channels").arg(channelCnt);
+        }
+    };
+
+    if (sampleRate >= 0) {
+        uiStrs << QString("%1 Hz").arg(sampleRate);
+        tooltipStrs << QString("Sample Rate: %1 Hz").arg(sampleRate);
+    }
+
+    if (bitrate >= 0) {
+        uiStrs << QString("%1 Kbps").arg(bitrate);
+        tooltipStrs << QString("Bitrate: %1 Kbps").arg(bitrate);
+    }
+
+    if (channelCount >= 0) {
+        uiStrs << channelStr(channelCount);
+        tooltipStrs << QString("Channel Count: %1").arg(channelCount);
+    }
+
+    uiStrs << audioExt;
+
+    ui->propLabel->setText(uiStrs.join(" | "));
+    ui->propLabel->setToolTip(tooltipStrs.join('\n'));
 }
 
 void MainWindow::localSocketPlayAudioFiles(QVariant audioFilesVariant)
@@ -248,6 +288,8 @@ void MainWindow::on_playBtn_clicked()
     if (m_mediaPlayer->mediaStatus() == QMediaPlayer::NoMedia) {
         loadFile();
         m_mediaPlayer->play();
+    } else if (m_mediaPlayer->mediaStatus() == QMediaPlayer::InvalidMedia) {
+        ui->propLabel->setText("Error: InvalidMedia");
     } else {
         if (QList<QMediaPlayer::State> {QMediaPlayer::PausedState, QMediaPlayer::StoppedState}
                 .contains(m_mediaPlayer->state())) {
@@ -364,22 +406,32 @@ void MainWindow::initConnections()
         QUrl fileUrl = media.canonicalUrl();
 #else
         QUrl fileUrl = media.request().url();
-#endif // QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
+#endif // QT_VERSION < QT_VERSION_CHECK(5, 14, 0)
 
         ui->titleLabel->setText(fileUrl.fileName());
+        ui->titleLabel->setToolTip(fileUrl.fileName());
+
         if (fileUrl.isLocalFile()) {
+            QString filePath(fileUrl.toLocalFile());
+            QString suffix(filePath.mid(filePath.lastIndexOf('.') + 1));
+            suffix = suffix.toUpper();
+
+            TagLib::FileRef fileRef(filePath.toLocal8Bit().data());
+            if(!fileRef.isNull() && fileRef.audioProperties()) {
+                TagLib::AudioProperties *prop = fileRef.audioProperties();
+                setAudioPropertyInfoForDisplay(prop->sampleRate(), prop->bitrate(), prop->channels(), suffix);
+            }
+
             using namespace spID3;
             using namespace spFLAC;
 
-            QString filePath(fileUrl.toLocalFile());
-
-            if (filePath.endsWith(".mp3")) {
+            if (suffix == "MP3") {
                 if (spID3::loadPictureData(filePath.toLocal8Bit().data())) {
                     QByteArray picData((const char*)spID3::getPictureDataPtr(), spID3::getPictureLength());
                     ui->coverLabel->setPixmap(QPixmap::fromImage(QImage::fromData(picData)));
                     spID3::freePictureData();
                 }
-            } else if (filePath.endsWith(".flac")) {
+            } else if (suffix == "FLAC") {
                 if (spFLAC::loadPictureData(filePath.toLocal8Bit().data())) {
                     QByteArray picData((const char*)spFLAC::getPictureDataPtr(), spFLAC::getPictureLength());
                     ui->coverLabel->setPixmap(QPixmap::fromImage(QImage::fromData(picData)));

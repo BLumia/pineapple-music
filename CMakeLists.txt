@@ -14,6 +14,9 @@ set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(Qt5 COMPONENTS Widgets Multimedia Network REQUIRED)
+find_package(PkgConfig)
+
+pkg_check_modules(TagLib REQUIRED taglib)
 
 set (EXE_NAME pmusic)
 
@@ -35,7 +38,8 @@ add_executable(${EXE_NAME}
   ID3v2Pic.h
 )
 
-target_link_libraries(${EXE_NAME} PRIVATE Qt5::Widgets Qt5::Multimedia Qt5::Network)
+target_include_directories(${EXE_NAME} PRIVATE ${TagLib_INCLUDE_DIRS})
+target_link_libraries(${EXE_NAME} PRIVATE Qt5::Widgets Qt5::Multimedia Qt5::Network ${TagLib_LINK_LIBRARIES})
 
 # Extra build settings
 if (WIN32)

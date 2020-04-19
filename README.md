@@ -1,5 +1,6 @@
 _**This is a not ready to use, toy project**_
 
+Since **I** just need a simple player which *just works* right now, so I did many things in a dirty way. Don't feel so weird if you saw something I did in this project is using a bad approach.
 
 ## Note
 
@@ -12,6 +13,29 @@ Platform|Built-in support|Probably useful 3rd-party codecs
 Windows|[Supported Formats In DirectsShow](https://msdn.microsoft.com/en-us/library/windows/desktop/dd407173%28v=vs.85%29.aspx)|[Xiph.org: Directshow Filters for Ogg Vorbis, Speex, Theora, FLAC, and WebM](https://www.xiph.org/dshow/)
 macOS|[Media formats supported by QuickTime Player](https://support.apple.com/en-us/HT201290)|Sorry, I don't know...
 Unix/Linux|depends on [GStreamer](https://gstreamer.freedesktop.org/) plugins which user installed|[GStreamer Plug-ins: gst-plugins-base, gst-plugins-good, gst-plugins-ugly, gst-plugins-bad](https://gstreamer.freedesktop.org/documentation/additional/splitup.html?gi-language=c)
+
+## Build
+
+Current state, we need:
+
+ - `cmake` as the build system.
+ - `qt5` with `qt5-multimedia` since we use it for playback.
+ - `taglib` to get the audio file properties.
+ - `pkg-config` to find the installed taglib.
+
+Then we can build it with any proper c++ compiler like g++ or msvc.
+
+### Linux
+
+Just normal build process as other program. Nothing special ;)
+
+### Windows
+
+Install the depts manually is a nightmare. I use [KDE Craft](https://community.kde.org/Craft) but MSYS2 should also works. FYI currently this project is not intended to works under Windows (it should works and I also did some simple test though).
+
+### macOS
+
+I don't have a mac, so no support at all.
 
 ## About License
 
