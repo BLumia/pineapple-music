@@ -121,6 +121,21 @@ void MainWindow::setAudioPropertyInfoForDisplay(int sampleRate, int bitrate, int
     ui->propLabel->setToolTip(tooltipStrs.join('\n'));
 }
 
+void MainWindow::setAudioMetadataForDisplay(QString title, QString artist, QString album)
+{
+    Q_UNUSED(album);
+
+    if (!title.isEmpty()) {
+        if (!artist.isEmpty()) {
+            ui->titleLabel->setText(QString("%1 - %2").arg(artist, title));
+        } else if (!album.isEmpty()) {
+            ui->titleLabel->setText(QString("%1 - %2").arg(artist, album));
+        } else {
+            ui->titleLabel->setText(QString("%1").arg(artist));
+        }
+    }
+}
+
 void MainWindow::localSocketPlayAudioFiles(QVariant audioFilesVariant)
 {
     QStringList urlStrList = audioFilesVariant.toStringList();
@@ -417,9 +432,17 @@ void MainWindow::initConnections()
             suffix = suffix.toUpper();
 
             TagLib::FileRef fileRef(filePath.toLocal8Bit().data());
-            if(!fileRef.isNull() && fileRef.audioProperties()) {
+
+            if (!fileRef.isNull() && fileRef.audioProperties()) {
                 TagLib::AudioProperties *prop = fileRef.audioProperties();
                 setAudioPropertyInfoForDisplay(prop->sampleRate(), prop->bitrate(), prop->channels(), suffix);
+            }
+
+            if (!fileRef.isNull() && fileRef.tag()) {
+                TagLib::Tag * tag = fileRef.tag();
+                setAudioMetadataForDisplay(QString::fromStdString(tag->title().to8Bit(true)),
+                                           QString::fromStdString(tag->artist().to8Bit(true)),
+                                           QString::fromStdString(tag->album().to8Bit(true)));
             }
 
             using namespace spID3;

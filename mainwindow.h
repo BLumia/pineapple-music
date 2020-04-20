@@ -24,6 +24,7 @@ public:
     void commandlinePlayAudioFiles(QStringList audioFiles);
     void loadPlaylistBySingleLocalFile(const QString &path);
     void setAudioPropertyInfoForDisplay(int sampleRate, int bitrate, int channelCount, QString audioExt);
+    void setAudioMetadataForDisplay(QString title, QString artist, QString album);
 
 public slots:
     void localSocketPlayAudioFiles(QVariant audioFilesVariant);
