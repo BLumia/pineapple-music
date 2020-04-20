@@ -129,9 +129,9 @@ void MainWindow::setAudioMetadataForDisplay(QString title, QString artist, QStri
         if (!artist.isEmpty()) {
             ui->titleLabel->setText(QString("%1 - %2").arg(artist, title));
         } else if (!album.isEmpty()) {
-            ui->titleLabel->setText(QString("%1 - %2").arg(artist, album));
+            ui->titleLabel->setText(QString("%1 - %2").arg(album, title));
         } else {
-            ui->titleLabel->setText(QString("%1").arg(artist));
+            ui->titleLabel->setText(QString("%1").arg(title));
         }
     }
 }
@@ -448,18 +448,26 @@ void MainWindow::initConnections()
             using namespace spID3;
             using namespace spFLAC;
 
+            bool coverLoaded = false;
+
             if (suffix == "MP3") {
                 if (spID3::loadPictureData(filePath.toLocal8Bit().data())) {
+                    coverLoaded = true;
                     QByteArray picData((const char*)spID3::getPictureDataPtr(), spID3::getPictureLength());
                     ui->coverLabel->setPixmap(QPixmap::fromImage(QImage::fromData(picData)));
                     spID3::freePictureData();
                 }
             } else if (suffix == "FLAC") {
                 if (spFLAC::loadPictureData(filePath.toLocal8Bit().data())) {
+                    coverLoaded = true;
                     QByteArray picData((const char*)spFLAC::getPictureDataPtr(), spFLAC::getPictureLength());
                     ui->coverLabel->setPixmap(QPixmap::fromImage(QImage::fromData(picData)));
                     spFLAC::freePictureData();
                 }
+            }
+
+            if (!coverLoaded) {
+                ui->coverLabel->setPixmap(QPixmap(":/icons/icons/media-album-cover.svg"));
             }
         }
     });
