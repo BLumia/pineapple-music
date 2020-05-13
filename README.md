@@ -44,9 +44,11 @@ Since this is a toy repo, I don't spend much time about the license stuff. Curre
 Anyway here is a list of file which is in non-free state (with license: do whatever you want but cannot be used as homework):
 
  - All png images inside `icons` folder.
- - FlacPic.h
- - ID3v2Pic.h
  - seekableslider.{h,cpp}
+
+And something from ShadowPlayer but in other license:
+
+ - {Flac,ID3v2}Pic.h : [AlbumCoverExtractor](https://github.com/ShadowPower/AlbumCoverExtractor), with [MIT License](https://github.com/ShadowPower/AlbumCoverExtractor/blob/master/LICENSE)
 
 Also there are some source code which I copy-paste from Qt codebase, which released under BSD-3-Clause license by the Qt Company:
 
