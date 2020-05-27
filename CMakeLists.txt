@@ -16,7 +16,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 find_package(Qt5 COMPONENTS Widgets Multimedia Network REQUIRED)
 find_package(PkgConfig)
 
+if (PKG_CONFIG_FOUND)
 pkg_check_modules(TagLib REQUIRED taglib)
+endif ()
 
 set (EXE_NAME pmusic)
 
@@ -37,6 +39,13 @@ add_executable(${EXE_NAME}
   FlacPic.h
   ID3v2Pic.h
 )
+
+if (NOT TagLib_FOUND)
+    message (WARNING "TagLib not found!")
+    target_compile_definitions(${EXE_NAME} PRIVATE
+        NO_TAGLIB=1
+    )
+endif ()
 
 target_include_directories(${EXE_NAME} PRIVATE ${TagLib_INCLUDE_DIRS})
 target_link_libraries(${EXE_NAME} PRIVATE Qt5::Widgets Qt5::Multimedia Qt5::Network ${TagLib_LINK_LIBRARIES})

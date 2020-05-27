@@ -7,7 +7,9 @@
 #include "FlacPic.h"
 
 // taglib
+#ifndef NO_TAGLIB
 #include <fileref.h>
+#endif // NO_TAGLIB
 
 #include <QPainter>
 #include <QMediaPlayer>
@@ -431,6 +433,7 @@ void MainWindow::initConnections()
             QString suffix(filePath.mid(filePath.lastIndexOf('.') + 1));
             suffix = suffix.toUpper();
 
+#ifndef NO_TAGLIB
             TagLib::FileRef fileRef(filePath.toLocal8Bit().data());
 
             if (!fileRef.isNull() && fileRef.audioProperties()) {
@@ -444,6 +447,7 @@ void MainWindow::initConnections()
                                            QString::fromStdString(tag->artist().to8Bit(true)),
                                            QString::fromStdString(tag->album().to8Bit(true)));
             }
+#endif // NO_TAGLIB
 
             using namespace spID3;
             using namespace spFLAC;
