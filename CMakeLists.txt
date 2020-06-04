@@ -13,31 +13,51 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(Qt5 COMPONENTS Widgets Multimedia Network REQUIRED)
+find_package(Qt5 COMPONENTS Widgets Multimedia Network LinguistTools REQUIRED)
 find_package(PkgConfig)
 
 if (PKG_CONFIG_FOUND)
 pkg_check_modules(TagLib REQUIRED taglib)
 endif ()
 
+set (PMUSIC_CPP_FILES
+    main.cpp
+    mainwindow.cpp
+    seekableslider.cpp
+    playlistmodel.cpp
+    singleapplicationmanager.cpp
+)
+
+set (PMUSIC_HEADER_FILES
+    mainwindow.h
+    seekableslider.h
+    playlistmodel.h
+    singleapplicationmanager.h
+)
+
+set (PMUSIC_UI_FILES
+    mainwindow.ui
+)
+
 set (EXE_NAME pmusic)
 
-add_executable(${EXE_NAME}
-  main.cpp
-  mainwindow.cpp
-  mainwindow.h
-  seekableslider.cpp
-  seekableslider.h
-  playlistmodel.h
-  playlistmodel.cpp
-  singleapplicationmanager.h
-  singleapplicationmanager.cpp
-  mainwindow.ui
-  resources.qrc
+# Translation
+file (GLOB PMUSIC_TS_FILES languages/*.ts)
+set (PMUSIC_CPP_FILES_FOR_I18N ${PMUSIC_CPP_FILES} ${PMUSIC_UI_FILES})
 
-  # 3rd party code
-  FlacPic.h
-  ID3v2Pic.h
+qt5_create_translation(PMUSIC_QM_FILES ${PMUSIC_CPP_FILES_FOR_I18N} ${PMUSIC_TS_FILES})
+
+add_executable(${EXE_NAME}
+    ${PMUSIC_HEADER_FILES}
+    ${PMUSIC_CPP_FILES}
+    ${PMUSIC_UI_FILES}
+    resources.qrc
+
+    # 3rd party code
+    FlacPic.h
+    ID3v2Pic.h
+
+    ${PMUSIC_QM_FILES}
 )
 
 if (NOT TagLib_FOUND)
