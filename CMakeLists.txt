@@ -125,3 +125,17 @@ install (
     TARGETS ${EXE_NAME}
     ${INSTALL_TARGETS_DEFAULT_ARGS}
 )
+
+if (WIN32)
+    set (QM_FILE_INSTALL_DIR "${CMAKE_INSTALL_BINDIR}/translations")
+else ()
+    set (QM_FILE_INSTALL_DIR "${CMAKE_INSTALL_FULL_DATADIR}/pineapple-music/translations")
+    target_compile_definitions(${EXE_NAME}
+        PRIVATE QM_FILE_INSTALL_DIR=${QM_FILE_INSTALL_DIR}
+    )
+endif ()
+
+install (
+    FILES ${PMUSIC_QM_FILES}
+    DESTINATION ${QM_FILE_INSTALL_DIR}
+)

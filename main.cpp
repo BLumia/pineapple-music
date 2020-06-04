@@ -6,10 +6,22 @@
 #include <QCommandLineParser>
 #include <QUrl>
 #include <QDebug>
+#include <QTranslator>
+#include <QDir>
 
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
+
+    QTranslator translator;
+    QString qmDir;
+#ifdef _WIN32
+    qmDir = QDir(QCoreApplication::applicationDirPath()).absoluteFilePath("translations");
+#else
+    qmDir = QT_STRINGIFY(QM_FILE_INSTALL_DIR);
+#endif
+    translator.load(QString("pineapple-music_%1").arg(QLocale::system().name()), qmDir);
+    a.installTranslator(&translator);
 
     // parse commandline arguments
     QCommandLineParser parser;

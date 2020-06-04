@@ -23,6 +23,26 @@
         <source>Audio Files</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>Pineapple Player</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>^</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>No song loaded...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Drag and drop file to load</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>0:00</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>main</name>
