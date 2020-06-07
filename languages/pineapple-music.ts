@@ -43,6 +43,18 @@
         <source>0:00</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>Sample Rate: %1 Hz</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Bitrate: %1 Kbps</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Channel Count: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>main</name>

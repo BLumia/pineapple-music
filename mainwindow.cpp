@@ -104,17 +104,17 @@ void MainWindow::setAudioPropertyInfoForDisplay(int sampleRate, int bitrate, int
 
     if (sampleRate >= 0) {
         uiStrs << QString("%1 Hz").arg(sampleRate);
-        tooltipStrs << QString("Sample Rate: %1 Hz").arg(sampleRate);
+        tooltipStrs << tr("Sample Rate: %1 Hz").arg(sampleRate);
     }
 
     if (bitrate >= 0) {
         uiStrs << QString("%1 Kbps").arg(bitrate);
-        tooltipStrs << QString("Bitrate: %1 Kbps").arg(bitrate);
+        tooltipStrs << tr("Bitrate: %1 Kbps").arg(bitrate);
     }
 
     if (channelCount >= 0) {
         uiStrs << channelStr(channelCount);
-        tooltipStrs << QString("Channel Count: %1").arg(channelCount);
+        tooltipStrs << tr("Channel Count: %1").arg(channelCount);
     }
 
     uiStrs << audioExt;

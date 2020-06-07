@@ -43,6 +43,18 @@
         <source>0:00</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>Sample Rate: %1 Hz</source>
+        <translation>采样率: %1 Hz</translation>
+    </message>
+    <message>
+        <source>Bitrate: %1 Kbps</source>
+        <translation>比特率: %1 Kbps</translation>
+    </message>
+    <message>
+        <source>Channel Count: %1</source>
+        <translation>声道数: %1</translation>
+    </message>
 </context>
 <context>
     <name>main</name>
