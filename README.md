@@ -37,6 +37,12 @@ Install the depts manually is a nightmare. I use [KDE Craft](https://community.k
 
 I don't have a mac, so no support at all.
 
+## Help Translation!
+
+[Translate this project on Transifex!](https://www.transifex.com/blumia/pineapple-music/)
+
+Feel free to open up an issue to request an new language to translate.
+
 ## About License
 
 Since this is a toy repo, I don't spend much time about the license stuff. Currently this project use some assets and code from [ShadowPlayer](https://github.com/ShadowPower/ShadowPlayer), which have a very interesting license -- do whatever you want but cannot be used as homework -- obviously it's not a so called *free* license. I *may* do some license housecleaning works by replaceing the assets and code implementation when the code become reasonable, and the final codebase may probably released under MIT license.
