@@ -64,7 +64,7 @@ void MainWindow::loadPlaylistBySingleLocalFile(const QString &path)
     QFileInfo info(path);
     QDir dir(info.path());
     QString currentFileName = info.fileName();
-    QStringList entryList = dir.entryList({"*.mp3", "*.wav", "*.aiff", "*.ape", "*.flac", "*.ogg", "*.oga"},
+    QStringList entryList = dir.entryList({"*.mp3", "*.wav", "*.aiff", "*.ape", "*.flac", "*.ogg", "*.oga", "*.mpga"},
                                           QDir::Files | QDir::NoSymLinks, QDir::NoSort);
 
     QCollator collator;
@@ -80,6 +80,12 @@ void MainWindow::loadPlaylistBySingleLocalFile(const QString &path)
         if (oneEntry == currentFileName) {
             currentFileIndex = i;
         }
+    }
+
+    if (currentFileIndex == -1) {
+        // not in the list probably because of the suffix is not a common one, add it to the first one anyway.
+        urlList.prepend(QUrl::fromLocalFile(path));
+        currentFileIndex = 0;
     }
 
     QMediaPlaylist * playlist = createPlaylist(urlList);

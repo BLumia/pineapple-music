@@ -1,5 +1,5 @@
 [Desktop Entry]
-Categories=Player;Audio;
+Categories=Audio;Player;
 Comment=Pineapple Music Audio Player.
 Exec=pmusic %F
 GenericName=Music
