@@ -1,11 +1,13 @@
+image:
+  - Visual Studio 2019
 environment:
   CMAKE_INSTALL_ROOT: C:\projects\cmake
   PACKAGE_INSTALL_ROOT: C:\projects\pir
   PKG_CONFIG_PATH: C:\projects\pir\lib\pkgconfig
   matrix:
-    - build_name: mingw73_32_qt5_12_6
-      QTPATH: C:\Qt\5.12.6\mingw73_32
-      MINGW32: C:\Qt\Tools\mingw730_32
+    - build_name: mingw81_64_qt5_15_2
+      QTPATH: C:\Qt\5.15.2\mingw81_64
+      MINGW64: C:\Qt\Tools\mingw810_64
 
 install:
   - mkdir %CMAKE_INSTALL_ROOT%
@@ -13,6 +15,8 @@ install:
   - cd %APPVEYOR_BUILD_FOLDER%
   - git submodule update --init --recursive
   - set PATH=%PATH%;%CMAKE_INSTALL_ROOT%;%QTPATH%\bin;%MINGW32%\bin
+  - set CC=%MINGW64%\bin\gcc.exe
+  - set CXX=%MINGW64%\bin\g++.exe
 
 build_script:
 # prepare
@@ -31,12 +35,12 @@ build_script:
 # finally...
   - mkdir build
   - cd build
-  - cmake .. -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_MAKE_PROGRAM=mingw32-make -DCMAKE_INSTALL_PREFIX='%cd%'
-  - mingw32-make
-  - mingw32-make install
+  - cmake .. -G "Ninja" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX='%cd%'
+  - cmake --build .
+  - cmake --build . --target install
 # fixme: I don't know how to NOT make the binary installed to the ./bin/ folder...
   - cd bin
-  - windeployqt --verbose=2 --no-quick-import --no-translations --no-opengl-sw --no-angle --no-system-d3d-compiler --release .\pmusic.exe
+  - windeployqt --verbose=2 --no-quick-import --no-translations --no-opengl-sw --no-angle --no-system-d3d-compiler .\pmusic.exe
   - xcopy /s %PACKAGE_INSTALL_ROOT%\bin %cd%
 # for debug..
   - tree /f
