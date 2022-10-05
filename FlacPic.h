@@ -19,7 +19,6 @@ ShadowPower 于2014/8/1 夜间
 #include <cstring>
 
 typedef unsigned char byte;
-using namespace std;
 
 namespace spFLAC {
 	//Flac元数据块头部结构体定义

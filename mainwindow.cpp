@@ -2,6 +2,7 @@
 #include "./ui_mainwindow.h"
 
 #include "playlistmodel.h"
+#include "qt/qmediaplaylist.h"
 
 #include "ID3v2Pic.h"
 #include "FlacPic.h"
@@ -13,7 +14,7 @@
 
 #include <QPainter>
 #include <QMediaPlayer>
-#include <QMediaPlaylist>
+#include <QAudioOutput>
 #include <QPropertyAnimation>
 #include <QFileDialog>
 #include <QTime>
@@ -27,9 +28,12 @@ MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
     , m_mediaPlayer(new QMediaPlayer(this))
+    , m_audioOutput(new QAudioOutput(this))
     , m_playlistModel(new PlaylistModel(this))
 {
     ui->setupUi(this);
+
+    m_mediaPlayer->setAudioOutput(m_audioOutput);
 
     this->setWindowFlags(Qt::FramelessWindowHint | Qt::WindowSystemMenuHint | Qt::WindowMinimizeButtonHint);
     this->setAttribute(Qt::WA_TranslucentBackground, true);
@@ -88,8 +92,7 @@ void MainWindow::loadPlaylistBySingleLocalFile(const QString &path)
         currentFileIndex = 0;
     }
 
-    QMediaPlaylist * playlist = createPlaylist(urlList);
-    playlist->setCurrentIndex(currentFileIndex);
+    createPlaylist(urlList);
 }
 
 void MainWindow::setAudioPropertyInfoForDisplay(int sampleRate, int bitrate, int channelCount, QString audioExt)
@@ -246,22 +249,11 @@ void MainWindow::loadFile()
 /*
  * The returned QMediaPlaylist* ownership belongs to the internal QMediaPlayer instance.
  */
-QMediaPlaylist *MainWindow::createPlaylist(QList<QUrl> urlList)
+void MainWindow::createPlaylist(QList<QUrl> urlList)
 {
-    QMediaPlaylist * oldPlaylist = m_mediaPlayer->playlist();
-    QMediaPlaylist * playlist = new QMediaPlaylist(m_mediaPlayer);
-
-    if (oldPlaylist) {
-        oldPlaylist->disconnect();
-        oldPlaylist->deleteLater();
-    }
-
-    for (const QUrl & url : urlList) {
-        bool succ = playlist->addMedia(QMediaContent(url));
-        if (!succ) {
-            qDebug("!!!!!!!!! break point time !!!!!!!!!");
-        }
-    }
+    QMediaPlaylist* playlist = m_playlistModel->playlist();
+    playlist->clear();
+    playlist->addMedia(urlList);
 
     connect(playlist, &QMediaPlaylist::playbackModeChanged, this, [=](QMediaPlaylist::PlaybackMode mode) {
         switch (mode) {
@@ -274,19 +266,16 @@ QMediaPlaylist *MainWindow::createPlaylist(QList<QUrl> urlList)
         case QMediaPlaylist::Sequential:
             ui->playbackModeBtn->setIcon(QIcon(":/icons/icons/media-playlist-normal.png"));
             break;
-        case QMediaPlaylist::Random:
-            ui->playbackModeBtn->setIcon(QIcon(":/icons/icons/media-playlist-shuffle.png"));
-            break;
+//        case QMediaPlaylist::Random:
+//            ui->playbackModeBtn->setIcon(QIcon(":/icons/icons/media-playlist-shuffle.png"));
+//            break;
         default:
             break;
         }
     });
 
     playlist->setPlaybackMode(QMediaPlaylist::CurrentItemInLoop);
-    m_mediaPlayer->setPlaylist(playlist);
-    m_playlistModel->setPlaylist(playlist);
-
-    return playlist;
+    playlist->setCurrentIndex(0);
 }
 
 void MainWindow::centerWindow()
@@ -314,8 +303,8 @@ void MainWindow::on_playBtn_clicked()
     } else if (m_mediaPlayer->mediaStatus() == QMediaPlayer::InvalidMedia) {
         ui->propLabel->setText("Error: InvalidMedia");
     } else {
-        if (QList<QMediaPlayer::State> {QMediaPlayer::PausedState, QMediaPlayer::StoppedState}
-                .contains(m_mediaPlayer->state())) {
+        if (QList<QMediaPlayer::PlaybackState> {QMediaPlayer::PausedState, QMediaPlayer::StoppedState}
+                .contains(m_mediaPlayer->playbackState())) {
             m_mediaPlayer->play();
         } else {
             m_mediaPlayer->pause();
@@ -348,10 +337,10 @@ QList<QUrl> MainWindow::strlst2urllst(QStringList strlst)
 
 void MainWindow::on_volumeSlider_valueChanged(int value)
 {
-    if (m_mediaPlayer->isMuted()) {
-        m_mediaPlayer->setMuted(false);
+    if (m_audioOutput->isMuted()) {
+        m_audioOutput->setMuted(false);
     }
-    m_mediaPlayer->setVolume(value);
+    m_audioOutput->setVolume(value);
 }
 
 void MainWindow::on_stopBtn_clicked()
@@ -371,30 +360,30 @@ void MainWindow::on_prevBtn_clicked()
 {
     // QMediaPlaylist::previous() won't work when in CurrentItemInLoop playmode,
     // and also works not as intended when in other playmode, so do it manually...
-    QMediaPlaylist * playlist = m_mediaPlayer->playlist();
+    QMediaPlaylist * playlist = m_playlistModel->playlist();
     if (playlist) {
         int index = playlist->currentIndex();
         int count = playlist->mediaCount();
 
-        m_mediaPlayer->playlist()->setCurrentIndex(index == 0 ? count - 1 : index - 1);
+        playlist->setCurrentIndex(index == 0 ? count - 1 : index - 1);
     }
 }
 
 void MainWindow::on_nextBtn_clicked()
 {
     // see also: MainWindow::on_prevBtn_clicked()
-    QMediaPlaylist * playlist = m_mediaPlayer->playlist();
+    QMediaPlaylist * playlist = m_playlistModel->playlist();
     if (playlist) {
         int index = playlist->currentIndex();
         int count = playlist->mediaCount();
 
-        m_mediaPlayer->playlist()->setCurrentIndex(index == (count - 1) ? 0 : index + 1);
+        playlist->setCurrentIndex(index == (count - 1) ? 0 : index + 1);
     }
 }
 
 void MainWindow::on_volumeBtn_clicked()
 {
-    m_mediaPlayer->setMuted(!m_mediaPlayer->isMuted());
+    m_audioOutput->setMuted(!m_audioOutput->isMuted());
 }
 
 void MainWindow::on_minimumWindowBtn_clicked()
@@ -424,13 +413,12 @@ void MainWindow::initUiAndAnimation()
 
 void MainWindow::initConnections()
 {
-    connect(m_mediaPlayer, &QMediaPlayer::currentMediaChanged, this, [=](const QMediaContent &media) {
-#if QT_VERSION < QT_VERSION_CHECK(5, 14, 0)
-        QUrl fileUrl = media.canonicalUrl();
-#else
-        QUrl fileUrl = media.request().url();
-#endif // QT_VERSION < QT_VERSION_CHECK(5, 14, 0)
-
+    connect(m_playlistModel->playlist(), &QMediaPlaylist::currentIndexChanged, this, [=](int currentItem) {
+        bool isPlaying = m_mediaPlayer->playbackState() == QMediaPlayer::PlayingState;
+        m_mediaPlayer->setSource(m_playlistModel->playlist()->currentMedia());
+        if (isPlaying) m_mediaPlayer->play();
+    });
+    connect(m_playlistModel->playlist(), &QMediaPlaylist::currentMediaChanged, this, [=](const QUrl &fileUrl) {
         ui->titleLabel->setText(fileUrl.fileName());
         ui->titleLabel->setToolTip(fileUrl.fileName());
 
@@ -489,7 +477,7 @@ void MainWindow::initConnections()
         }
     });
 
-    connect(m_mediaPlayer, &QMediaPlayer::mutedChanged, this, [=](bool muted) {
+    connect(m_audioOutput, &QAudioOutput::mutedChanged, this, [=](bool muted) {
         if (muted) {
             ui->volumeBtn->setIcon(QIcon(":/icons/icons/audio-volume-muted.png"));
         } else {
@@ -501,7 +489,7 @@ void MainWindow::initConnections()
         ui->totalTimeLabel->setText(ms2str(dua));
     });
 
-    connect(m_mediaPlayer, &QMediaPlayer::stateChanged, this, [=](QMediaPlayer::State newState) {
+    connect(m_mediaPlayer, &QMediaPlayer::playbackStateChanged, this, [=](QMediaPlayer::PlaybackState newState) {
         switch (newState) {
         case QMediaPlayer::PlayingState:
             ui->playBtn->setIcon(QIcon(":/icons/icons/media-playback-pause.png"));
@@ -513,23 +501,23 @@ void MainWindow::initConnections()
         }
     });
 
-    connect(m_mediaPlayer, &QMediaPlayer::volumeChanged, this, [=](int vol) {
+    connect(m_audioOutput, &QAudioOutput::volumeChanged, this, [=](int vol) {
         ui->volumeSlider->setValue(vol);
     });
 
-    connect(m_mediaPlayer, static_cast<void(QMediaPlayer::*)(QMediaPlayer::Error)>(&QMediaPlayer::error),
-            this, [=](QMediaPlayer::Error error) {
-        switch (error) {
-        default:
-            break;
-        }
-        qDebug("%s aaaaaaaaaaaaa", m_mediaPlayer->errorString().toUtf8().data());
-    });
+//    connect(m_mediaPlayer, static_cast<void(QMediaPlayer::*)(QMediaPlayer::Error)>(&QMediaPlayer::error),
+//            this, [=](QMediaPlayer::Error error) {
+//        switch (error) {
+//        default:
+//            break;
+//        }
+//        qDebug("%s aaaaaaaaaaaaa", m_mediaPlayer->errorString().toUtf8().data());
+//    });
 }
 
 void MainWindow::on_playbackModeBtn_clicked()
 {
-    QMediaPlaylist * playlist = m_mediaPlayer->playlist();
+    QMediaPlaylist * playlist = m_playlistModel->playlist();
     if (!playlist) return;
 
     switch (playlist->playbackMode()) {
@@ -540,11 +528,11 @@ void MainWindow::on_playbackModeBtn_clicked()
         playlist->setPlaybackMode(QMediaPlaylist::Sequential);
         break;
     case QMediaPlaylist::Sequential:
-        playlist->setPlaybackMode(QMediaPlaylist::Random);
-        break;
-    case QMediaPlaylist::Random:
         playlist->setPlaybackMode(QMediaPlaylist::CurrentItemInLoop);
         break;
+//    case QMediaPlaylist::Random:
+//        playlist->setPlaybackMode(QMediaPlaylist::CurrentItemInLoop);
+//        break;
     default:
         break;
     }

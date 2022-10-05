@@ -1,5 +1,6 @@
 #include "singleapplicationmanager.h"
 
+#include <QVariant>
 #include <QDataStream>
 #include <QLocalServer>
 #include <QLocalSocket>

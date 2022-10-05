@@ -5,16 +5,16 @@ environment:
   PACKAGE_INSTALL_ROOT: C:\projects\pir
   PKG_CONFIG_PATH: C:\projects\pir\lib\pkgconfig
   matrix:
-    - build_name: mingw81_64_qt5_15_2
-      QTPATH: C:\Qt\5.15.2\mingw81_64
-      MINGW64: C:\Qt\Tools\mingw810_64
+    - build_name: mingw1120_64_qt6_4
+      QTPATH: C:\Qt\6.4\mingw_64
+      MINGW64: C:\Qt\Tools\mingw1120_64
 
 install:
   - mkdir %CMAKE_INSTALL_ROOT%
   - mkdir %PACKAGE_INSTALL_ROOT%
   - cd %APPVEYOR_BUILD_FOLDER%
   - git submodule update --init --recursive
-  - set PATH=%PATH%;%CMAKE_INSTALL_ROOT%;%QTPATH%\bin;%MINGW32%\bin
+  - set PATH=%PATH%;%CMAKE_INSTALL_ROOT%;%QTPATH%\bin;%MINGW64%\bin
   - set CC=%MINGW64%\bin\gcc.exe
   - set CXX=%MINGW64%\bin\g++.exe
 
@@ -26,7 +26,7 @@ build_script:
 # build taglib
   - cd 3rdparty
   - git clone -q https://github.com/taglib/taglib.git
-  - cd taglib
+  - cd taglib  
   - cmake -G "Ninja" . -DCMAKE_INSTALL_PREFIX=%PACKAGE_INSTALL_ROOT% -DBUILD_SHARED_LIBS=ON
   - cmake --build .
   - cmake --build . --target install
@@ -40,8 +40,11 @@ build_script:
   - cmake --build . --target install
 # fixme: I don't know how to NOT make the binary installed to the ./bin/ folder...
   - cd bin
-  - windeployqt --verbose=2 --no-quick-import --no-translations --no-opengl-sw --no-angle --no-system-d3d-compiler .\pmusic.exe
+  - windeployqt --verbose=2 --no-quick-import --no-translations --no-opengl-sw --compiler-runtime --no-system-d3d-compiler --multimedia .\pmusic.exe
   - xcopy /s %PACKAGE_INSTALL_ROOT%\bin %cd%
+# don't know why windeployqt doesn't copy the multimedia plugin dir...
+  - mkdir multimedia
+  - copy %QTPATH%\plugins\multimedia\windowsmediaplugin.dll multimedia\windowsmediaplugin.dll
 # for debug..
   - tree /f
 

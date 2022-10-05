@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.12)
 
 project(pineapple-music LANGUAGES CXX)
 
@@ -10,10 +10,10 @@ set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(Qt5 COMPONENTS Widgets Multimedia Network LinguistTools REQUIRED)
+find_package(Qt6 6.4 COMPONENTS Widgets Multimedia Network LinguistTools REQUIRED)
 find_package(PkgConfig)
 
 if (PKG_CONFIG_FOUND)
@@ -26,6 +26,9 @@ set (PMUSIC_CPP_FILES
     seekableslider.cpp
     playlistmodel.cpp
     singleapplicationmanager.cpp
+
+    qt/qplaylistfileparser.cpp
+    qt/qmediaplaylist.cpp
 )
 
 set (PMUSIC_HEADER_FILES
@@ -33,6 +36,10 @@ set (PMUSIC_HEADER_FILES
     seekableslider.h
     playlistmodel.h
     singleapplicationmanager.h
+
+    qt/qplaylistfileparser_p.h
+    qt/qmediaplaylist.h
+    qt/qmediaplaylist_p.h
 )
 
 set (PMUSIC_UI_FILES
@@ -45,7 +52,7 @@ set (EXE_NAME pmusic)
 file (GLOB PMUSIC_TS_FILES languages/*.ts)
 set (PMUSIC_CPP_FILES_FOR_I18N ${PMUSIC_CPP_FILES} ${PMUSIC_UI_FILES})
 
-qt5_create_translation(PMUSIC_QM_FILES ${PMUSIC_CPP_FILES_FOR_I18N} ${PMUSIC_TS_FILES})
+qt_create_translation(PMUSIC_QM_FILES ${PMUSIC_CPP_FILES_FOR_I18N} ${PMUSIC_TS_FILES})
 
 add_executable(${EXE_NAME}
     ${PMUSIC_HEADER_FILES}
@@ -68,7 +75,7 @@ if (NOT TagLib_FOUND)
 endif ()
 
 target_include_directories(${EXE_NAME} PRIVATE ${TagLib_INCLUDE_DIRS})
-target_link_libraries(${EXE_NAME} PRIVATE Qt5::Widgets Qt5::Multimedia Qt5::Network ${TagLib_LINK_LIBRARIES})
+target_link_libraries(${EXE_NAME} PRIVATE Qt::Widgets Qt::Multimedia Qt::Network ${TagLib_LINK_LIBRARIES})
 
 # Extra build settings
 if (WIN32)

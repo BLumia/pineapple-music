@@ -8,7 +8,7 @@ QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
 
 class QMediaPlayer;
-class QMediaPlaylist;
+class QAudioOutput;
 class QPropertyAnimation;
 QT_END_NAMESPACE
 
@@ -40,7 +40,7 @@ protected:
 
     void loadFile();
     void centerWindow();
-    QMediaPlaylist *createPlaylist(QList<QUrl> urlList);
+    void createPlaylist(QList<QUrl> urlList);
 
 private slots:
     void on_playbackModeBtn_clicked();
@@ -63,6 +63,7 @@ private:
     Ui::MainWindow *ui;
 
     QMediaPlayer *m_mediaPlayer;
+    QAudioOutput *m_audioOutput;
     QPropertyAnimation *m_fadeOutAnimation;
     PlaylistModel *m_playlistModel = nullptr; // TODO: move playback logic to player.cpp
 

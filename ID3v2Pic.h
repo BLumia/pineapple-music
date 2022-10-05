@@ -19,7 +19,6 @@ ShadowPower 于2014/8/1 上午
 #include <cstring>
 
 typedef unsigned char byte;
-using namespace std;
 
 namespace spID3 {
 	//ID3v2标签头部结构体定义
