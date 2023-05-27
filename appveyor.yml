@@ -6,7 +6,7 @@ environment:
   PKG_CONFIG_PATH: C:\projects\pir\lib\pkgconfig
   matrix:
     - build_name: mingw1120_64_qt6_4
-      QTPATH: C:\Qt\6.4\mingw_64
+      QTPATH: C:\Qt\6.5\mingw_64
       MINGW64: C:\Qt\Tools\mingw1120_64
 
 install:
@@ -42,9 +42,6 @@ build_script:
   - cd bin
   - windeployqt --verbose=2 --no-quick-import --no-translations --no-opengl-sw --compiler-runtime --no-system-d3d-compiler --multimedia .\pmusic.exe
   - xcopy /s %PACKAGE_INSTALL_ROOT%\bin %cd%
-# don't know why windeployqt doesn't copy the multimedia plugin dir...
-  - mkdir multimedia
-  - copy %QTPATH%\plugins\multimedia\windowsmediaplugin.dll multimedia\windowsmediaplugin.dll
 # for debug..
   - tree /f
 

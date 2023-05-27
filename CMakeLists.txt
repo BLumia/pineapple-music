@@ -13,7 +13,7 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(Qt6 6.4 COMPONENTS Widgets Multimedia Network LinguistTools REQUIRED)
+find_package(Qt6 6.5.1 COMPONENTS Widgets Multimedia Network LinguistTools REQUIRED)
 find_package(PkgConfig)
 
 if (PKG_CONFIG_FOUND)
