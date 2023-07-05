@@ -301,7 +301,7 @@ void MainWindow::on_playBtn_clicked()
         loadFile();
         m_mediaPlayer->play();
     } else if (m_mediaPlayer->mediaStatus() == QMediaPlayer::InvalidMedia) {
-        ui->propLabel->setText("Error: InvalidMedia");
+        ui->propLabel->setText("Error: InvalidMedia" + m_mediaPlayer->errorString());
     } else {
         if (QList<QMediaPlayer::PlaybackState> {QMediaPlayer::PausedState, QMediaPlayer::StoppedState}
                 .contains(m_mediaPlayer->playbackState())) {
@@ -340,7 +340,7 @@ void MainWindow::on_volumeSlider_valueChanged(int value)
     if (m_audioOutput->isMuted()) {
         m_audioOutput->setMuted(false);
     }
-    m_audioOutput->setVolume(value);
+    m_audioOutput->setVolume(value / 100.0);
 }
 
 void MainWindow::on_stopBtn_clicked()
@@ -501,8 +501,8 @@ void MainWindow::initConnections()
         }
     });
 
-    connect(m_audioOutput, &QAudioOutput::volumeChanged, this, [=](int vol) {
-        ui->volumeSlider->setValue(vol);
+    connect(m_audioOutput, &QAudioOutput::volumeChanged, this, [=](float vol) {
+        ui->volumeSlider->setValue(vol * 100);
     });
 
 //    connect(m_mediaPlayer, static_cast<void(QMediaPlayer::*)(QMediaPlayer::Error)>(&QMediaPlayer::error),
