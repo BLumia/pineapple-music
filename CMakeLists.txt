@@ -17,7 +17,7 @@ find_package(Qt6 6.5.1 COMPONENTS Widgets Multimedia Network LinguistTools REQUI
 find_package(PkgConfig)
 
 if (PKG_CONFIG_FOUND)
-pkg_check_modules(TagLib REQUIRED taglib)
+pkg_check_modules(TagLib taglib IMPORTED_TARGET)
 endif ()
 
 set (PMUSIC_CPP_FILES
@@ -72,10 +72,11 @@ if (NOT TagLib_FOUND)
     target_compile_definitions(${EXE_NAME} PRIVATE
         NO_TAGLIB=1
     )
+else ()
+    target_link_libraries(${EXE_NAME} PRIVATE PkgConfig::TagLib)
 endif ()
 
-target_include_directories(${EXE_NAME} PRIVATE ${TagLib_INCLUDE_DIRS})
-target_link_libraries(${EXE_NAME} PRIVATE Qt::Widgets Qt::Multimedia Qt::Network ${TagLib_LINK_LIBRARIES})
+target_link_libraries(${EXE_NAME} PRIVATE Qt::Widgets Qt::Multimedia Qt::Network)
 
 # Extra build settings
 if (WIN32)
@@ -85,28 +86,14 @@ if (WIN32)
     )
 endif ()
 
-# Helper macros for install settings
-macro (pmusic_convert_to_relative_path _var)
-    # Make sure _var is a relative path
-    if (IS_ABSOLUTE "${${_var}}")
-        file (RELATIVE_PATH ${_var} "${CMAKE_INSTALL_PREFIX}" "${${_var}}")
-    endif ()
-endmacro ()
-
 # Install settings
 if (WIN32)
     # FIXME: try to avoid install to a "bin" subfolder under windows...
     #        when fixed, don't forget to update the CI config file...
-    set (BIN_INSTALL_DIR "") # seems useless, don't know why...
 elseif (UNIX)
     if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
         set(CMAKE_INSTALL_PREFIX /usr)
     endif ()
-
-    set (BIN_INSTALL_DIR "${CMAKE_INSTALL_BINDIR}") # relative, usually "bin"
-    pmusic_convert_to_relative_path(BIN_INSTALL_DIR)
-    set (LIB_INSTALL_DIR "${CMAKE_INSTALL_LIBDIR}") # "lib" or "lib64"
-    pmusic_convert_to_relative_path(LIB_INSTALL_DIR)
 
     # install icon
     install (
@@ -123,9 +110,9 @@ elseif (UNIX)
 endif()
 
 set (INSTALL_TARGETS_DEFAULT_ARGS
-    RUNTIME DESTINATION ${BIN_INSTALL_DIR}
-    LIBRARY DESTINATION ${LIB_INSTALL_DIR}
-    ARCHIVE DESTINATION ${LIB_INSTALL_DIR} COMPONENT Devel
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT Devel
 )
 
 install (
