@@ -5,7 +5,7 @@ environment:
   PACKAGE_INSTALL_ROOT: C:\projects\pir
   PKG_CONFIG_PATH: C:\projects\pir\lib\pkgconfig
   matrix:
-    - build_name: mingw1120_64_qt6_4
+    - build_name: mingw1120_64_qt6_5
       QTPATH: C:\Qt\6.5\mingw_64
       MINGW64: C:\Qt\Tools\mingw1120_64
 
