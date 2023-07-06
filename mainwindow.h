@@ -55,7 +55,6 @@ private slots:
     void on_minimumWindowBtn_clicked();
 
 private:
-    QPoint m_oldMousePos;
     bool m_clickedOnWindow = false;
     bool m_playbackSliderPressed = false;
     QLinearGradient m_bgLinearGradient;

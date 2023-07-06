@@ -23,6 +23,7 @@
 #include <QListView>
 #include <QCollator>
 #include <QMimeData>
+#include <QWindow>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -183,7 +184,6 @@ void MainWindow::mousePressEvent(QMouseEvent *event)
 {
     if (event->buttons() & Qt::LeftButton && !isMaximized()) {
         m_clickedOnWindow = true;
-        m_oldMousePos = event->pos();
         event->accept();
     }
 
@@ -193,7 +193,7 @@ void MainWindow::mousePressEvent(QMouseEvent *event)
 void MainWindow::mouseMoveEvent(QMouseEvent *event)
 {
     if (event->buttons() & Qt::LeftButton && m_clickedOnWindow) {
-        move(event->globalPos() - m_oldMousePos);
+        window()->windowHandle()->startSystemMove();
         event->accept();
     }
 
