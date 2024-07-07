@@ -93,7 +93,7 @@ void MainWindow::loadPlaylistBySingleLocalFile(const QString &path)
         currentFileIndex = 0;
     }
 
-    createPlaylist(urlList);
+    createPlaylist(urlList, currentFileIndex);
 }
 
 void MainWindow::setAudioPropertyInfoForDisplay(int sampleRate, int bitrate, int channelCount, QString audioExt)
@@ -193,6 +193,7 @@ void MainWindow::mousePressEvent(QMouseEvent *event)
 void MainWindow::mouseMoveEvent(QMouseEvent *event)
 {
     if (event->buttons() & Qt::LeftButton && m_clickedOnWindow) {
+        qDebug() << "??" << event << event->flags() << event->isBeginEvent() << event->isEndEvent();
         window()->windowHandle()->startSystemMove();
         event->accept();
     }
@@ -203,7 +204,7 @@ void MainWindow::mouseMoveEvent(QMouseEvent *event)
 void MainWindow::mouseReleaseEvent(QMouseEvent *event)
 {
     m_clickedOnWindow = false;
-
+    qDebug() << "?";
     return QMainWindow::mouseReleaseEvent(event);
 }
 
@@ -249,7 +250,7 @@ void MainWindow::loadFile()
 /*
  * The returned QMediaPlaylist* ownership belongs to the internal QMediaPlayer instance.
  */
-void MainWindow::createPlaylist(QList<QUrl> urlList)
+void MainWindow::createPlaylist(QList<QUrl> urlList, int index)
 {
     QMediaPlaylist* playlist = m_playlistModel->playlist();
     playlist->clear();
@@ -275,7 +276,7 @@ void MainWindow::createPlaylist(QList<QUrl> urlList)
     });
 
     playlist->setPlaybackMode(QMediaPlaylist::CurrentItemInLoop);
-    playlist->setCurrentIndex(0);
+    playlist->setCurrentIndex(index < 0 ? 0 : index);
 }
 
 void MainWindow::centerWindow()

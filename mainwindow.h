@@ -40,7 +40,7 @@ protected:
 
     void loadFile();
     void centerWindow();
-    void createPlaylist(QList<QUrl> urlList);
+    void createPlaylist(QList<QUrl> urlList, int index = -1);
 
 private slots:
     void on_playbackModeBtn_clicked();
