@@ -5,8 +5,8 @@ environment:
   PACKAGE_INSTALL_ROOT: C:\projects\pir
   PKG_CONFIG_PATH: C:\projects\pir\lib\pkgconfig
   matrix:
-    - build_name: mingw1120_64_qt6_5
-      QTPATH: C:\Qt\6.5\mingw_64
+    - build_name: mingw1120_64_qt6_7
+      QTPATH: C:\Qt\6.7\mingw_64
       MINGW64: C:\Qt\Tools\mingw1120_64
 
 install:
@@ -21,11 +21,11 @@ install:
 build_script:
 # prepare
   - mkdir 3rdparty
-  - cinst ninja
-  - cinst pkgconfiglite
+  - choco install ninja
+  - choco install pkgconfiglite
 # build taglib
   - cd 3rdparty
-  - git clone -q https://github.com/taglib/taglib.git
+  - git clone --recurse-submodules -q https://github.com/taglib/taglib.git
   - cd taglib  
   - cmake -G "Ninja" . -DCMAKE_INSTALL_PREFIX=%PACKAGE_INSTALL_ROOT% -DBUILD_SHARED_LIBS=ON
   - cmake --build .
