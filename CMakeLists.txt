@@ -24,22 +24,15 @@ set (PMUSIC_CPP_FILES
     main.cpp
     mainwindow.cpp
     seekableslider.cpp
-    playlistmodel.cpp
+    playlistmanager.cpp
     singleapplicationmanager.cpp
-
-    qt/qplaylistfileparser.cpp
-    qt/qmediaplaylist.cpp
 )
 
 set (PMUSIC_HEADER_FILES
     mainwindow.h
     seekableslider.h
-    playlistmodel.h
+    playlistmanager.h
     singleapplicationmanager.h
-
-    qt/qplaylistfileparser_p.h
-    qt/qmediaplaylist.h
-    qt/qmediaplaylist_p.h
 )
 
 set (PMUSIC_UI_FILES
@@ -59,10 +52,6 @@ add_executable(${EXE_NAME}
     ${PMUSIC_CPP_FILES}
     ${PMUSIC_UI_FILES}
     resources.qrc
-
-    # 3rd party code
-    FlacPic.h
-    ID3v2Pic.h
 
     ${PMUSIC_QM_FILES}
 )

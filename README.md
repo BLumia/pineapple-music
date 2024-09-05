@@ -27,9 +27,7 @@ I don't have a mac, so no support at all.
 
 ## Help Translation!
 
-[Translate this project on Transifex!](https://www.transifex.com/blumia/pineapple-music/)
-
-Feel free to open up an issue to request an new language to translate.
+TODO: move to Codeberg's Weblate.
 
 ## About License
 
@@ -39,11 +37,3 @@ Anyway here is a list of file which is in non-free state (with license: do whate
 
  - All png images inside `icons` folder.
  - seekableslider.{h,cpp}
-
-And something from ShadowPlayer but in other license:
-
- - {Flac,ID3v2}Pic.h : [AlbumCoverExtractor](https://github.com/ShadowPower/AlbumCoverExtractor), with [MIT License](https://github.com/ShadowPower/AlbumCoverExtractor/blob/master/LICENSE)
-
-Also there are some source code which I copy-paste from Qt codebase, which released under BSD-3-Clause license by the Qt Company:
-
- - playlistmodel.{h,cpp}

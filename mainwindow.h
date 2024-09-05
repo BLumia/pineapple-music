@@ -12,17 +12,25 @@ class QAudioOutput;
 class QPropertyAnimation;
 QT_END_NAMESPACE
 
-class PlaylistModel;
+class PlaylistManager;
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
 
 public:
+    enum PlaybackMode {
+        CurrentItemOnce,
+        CurrentItemInLoop,
+        Sequential,
+    };
+    Q_ENUM(PlaybackMode)
+
+    Q_PROPERTY(PlaybackMode playbackMode MEMBER m_playbackMode NOTIFY playbackModeChanged)
+
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow() override;
 
     void commandlinePlayAudioFiles(QStringList audioFiles);
-    void loadPlaylistBySingleLocalFile(const QString &path);
     void setAudioPropertyInfoForDisplay(int sampleRate, int bitrate, int channelCount, QString audioExt);
     void setAudioMetadataForDisplay(QString title, QString artist, QString album);
 
@@ -40,7 +48,6 @@ protected:
 
     void loadFile();
     void centerWindow();
-    void createPlaylist(QList<QUrl> urlList, int index = -1);
 
 private slots:
     void on_playbackModeBtn_clicked();
@@ -54,17 +61,25 @@ private slots:
     void on_volumeBtn_clicked();
     void on_minimumWindowBtn_clicked();
 
+    void on_playListBtn_clicked();
+
+    void on_playlistView_activated(const QModelIndex &index);
+
+signals:
+    void playbackModeChanged(enum PlaybackMode mode);
+
 private:
     bool m_clickedOnWindow = false;
     bool m_playbackSliderPressed = false;
     QLinearGradient m_bgLinearGradient;
+    enum PlaybackMode m_playbackMode = CurrentItemInLoop;
 
     Ui::MainWindow *ui;
 
     QMediaPlayer *m_mediaPlayer;
     QAudioOutput *m_audioOutput;
     QPropertyAnimation *m_fadeOutAnimation;
-    PlaylistModel *m_playlistModel = nullptr; // TODO: move playback logic to player.cpp
+    PlaylistManager *m_playlistManager;
 
     void initUiAndAnimation();
     void initConnections();

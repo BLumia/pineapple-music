@@ -15,6 +15,7 @@
         <file>icons/media-playlist-shuffle.png</file>
         <file>icons/media-playlist-repeat-song.png</file>
         <file>icons/media-playlist-normal.png</file>
+		<file>icons/media-repeat-single.png</file>
         <file>icons/media-album-cover.svg</file>
     </qresource>
 </RCC>

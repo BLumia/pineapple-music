@@ -1,11 +1,7 @@
 #include "mainwindow.h"
 #include "./ui_mainwindow.h"
 
-#include "playlistmodel.h"
-#include "qt/qmediaplaylist.h"
-
-#include "ID3v2Pic.h"
-#include "FlacPic.h"
+#include "playlistmanager.h"
 
 // taglib
 #ifndef NO_TAGLIB
@@ -14,6 +10,7 @@
 
 #include <QPainter>
 #include <QMediaPlayer>
+#include <QMediaMetaData>
 #include <QAudioOutput>
 #include <QPropertyAnimation>
 #include <QFileDialog>
@@ -30,11 +27,15 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
     , m_mediaPlayer(new QMediaPlayer(this))
     , m_audioOutput(new QAudioOutput(this))
-    , m_playlistModel(new PlaylistModel(this))
+    , m_playlistManager(new PlaylistManager(this))
 {
     ui->setupUi(this);
 
+    m_playlistManager->setAutoLoadFilterSuffixes({
+        "*.mp3", "*.wav", "*.aiff", "*.ape", "*.flac", "*.ogg", "*.oga", "*.mpga"
+    });
     m_mediaPlayer->setAudioOutput(m_audioOutput);
+    ui->playlistView->setModel(m_playlistManager->model());
 
     this->setWindowFlags(Qt::FramelessWindowHint | Qt::WindowSystemMenuHint | Qt::WindowMinimizeButtonHint);
     this->setAttribute(Qt::WA_TranslucentBackground, true);
@@ -55,45 +56,8 @@ void MainWindow::commandlinePlayAudioFiles(QStringList audioFiles)
     QList<QUrl> audioFileUrls = strlst2urllst(audioFiles);
 
     if (!audioFileUrls.isEmpty()) {
-        if (audioFileUrls.count() == 1) {
-            loadPlaylistBySingleLocalFile(audioFileUrls.first().toLocalFile());
-        } else {
-            createPlaylist(audioFileUrls);
-        }
-        m_mediaPlayer->play();
+        QModelIndex modelIndex = m_playlistManager->loadPlaylist(audioFileUrls);
     }
-}
-
-void MainWindow::loadPlaylistBySingleLocalFile(const QString &path)
-{
-    QFileInfo info(path);
-    QDir dir(info.path());
-    QString currentFileName = info.fileName();
-    QStringList entryList = dir.entryList({"*.mp3", "*.wav", "*.aiff", "*.ape", "*.flac", "*.ogg", "*.oga", "*.mpga"},
-                                          QDir::Files | QDir::NoSymLinks, QDir::NoSort);
-
-    QCollator collator;
-    collator.setNumericMode(true);
-
-    std::sort(entryList.begin(), entryList.end(), collator);
-
-    QList<QUrl> urlList;
-    int currentFileIndex = -1;
-    for (int i = 0; i < entryList.count(); i++) {
-        const QString & oneEntry = entryList.at(i);
-        urlList.append(QUrl::fromLocalFile(dir.absoluteFilePath(oneEntry)));
-        if (oneEntry == currentFileName) {
-            currentFileIndex = i;
-        }
-    }
-
-    if (currentFileIndex == -1) {
-        // not in the list probably because of the suffix is not a common one, add it to the first one anyway.
-        urlList.prepend(QUrl::fromLocalFile(path));
-        currentFileIndex = 0;
-    }
-
-    createPlaylist(urlList, currentFileIndex);
 }
 
 void MainWindow::setAudioPropertyInfoForDisplay(int sampleRate, int bitrate, int channelCount, QString audioExt)
@@ -227,10 +191,7 @@ void MainWindow::dropEvent(QDropEvent *e)
         return;
     }
 
-    // TODO: file/format filter?
-
-    createPlaylist(urls);
-    m_mediaPlayer->play();
+    m_playlistManager->loadPlaylist(urls);
 }
 
 void MainWindow::loadFile()
@@ -244,39 +205,7 @@ void MainWindow::loadFile()
         urlList.append(QUrl::fromLocalFile(fileName));
     }
 
-    createPlaylist(urlList);
-}
-
-/*
- * The returned QMediaPlaylist* ownership belongs to the internal QMediaPlayer instance.
- */
-void MainWindow::createPlaylist(QList<QUrl> urlList, int index)
-{
-    QMediaPlaylist* playlist = m_playlistModel->playlist();
-    playlist->clear();
-    playlist->addMedia(urlList);
-
-    connect(playlist, &QMediaPlaylist::playbackModeChanged, this, [=](QMediaPlaylist::PlaybackMode mode) {
-        switch (mode) {
-        case QMediaPlaylist::CurrentItemInLoop:
-            ui->playbackModeBtn->setIcon(QIcon(":/icons/icons/media-playlist-repeat-song.png"));
-            break;
-        case QMediaPlaylist::Loop:
-            ui->playbackModeBtn->setIcon(QIcon(":/icons/icons/media-playlist-repeat.png"));
-            break;
-        case QMediaPlaylist::Sequential:
-            ui->playbackModeBtn->setIcon(QIcon(":/icons/icons/media-playlist-normal.png"));
-            break;
-//        case QMediaPlaylist::Random:
-//            ui->playbackModeBtn->setIcon(QIcon(":/icons/icons/media-playlist-shuffle.png"));
-//            break;
-        default:
-            break;
-        }
-    });
-
-    playlist->setPlaybackMode(QMediaPlaylist::CurrentItemInLoop);
-    playlist->setCurrentIndex(index < 0 ? 0 : index);
+    m_playlistManager->loadPlaylist(urlList);
 }
 
 void MainWindow::centerWindow()
@@ -359,27 +288,12 @@ void MainWindow::on_playbackSlider_valueChanged(int value)
 
 void MainWindow::on_prevBtn_clicked()
 {
-    // QMediaPlaylist::previous() won't work when in CurrentItemInLoop playmode,
-    // and also works not as intended when in other playmode, so do it manually...
-    QMediaPlaylist * playlist = m_playlistModel->playlist();
-    if (playlist) {
-        int index = playlist->currentIndex();
-        int count = playlist->mediaCount();
-
-        playlist->setCurrentIndex(index == 0 ? count - 1 : index - 1);
-    }
+    m_playlistManager->setCurrentIndex(m_playlistManager->previousIndex());
 }
 
 void MainWindow::on_nextBtn_clicked()
 {
-    // see also: MainWindow::on_prevBtn_clicked()
-    QMediaPlaylist * playlist = m_playlistModel->playlist();
-    if (playlist) {
-        int index = playlist->currentIndex();
-        int count = playlist->mediaCount();
-
-        playlist->setCurrentIndex(index == (count - 1) ? 0 : index + 1);
-    }
+    m_playlistManager->setCurrentIndex(m_playlistManager->nextIndex());
 }
 
 void MainWindow::on_volumeBtn_clicked()
@@ -404,22 +318,29 @@ void MainWindow::initUiAndAnimation()
     m_fadeOutAnimation->setStartValue(1);
     m_fadeOutAnimation->setEndValue(0);
     connect(m_fadeOutAnimation, &QPropertyAnimation::finished, this, &QMainWindow::close);
-
-    // temp: a playlist for debug...
-    QListView * tmp_listview = new QListView(ui->pluginWidget);
-    tmp_listview->setModel(m_playlistModel);
-    tmp_listview->setGeometry({0,0,490,250});
-    this->setGeometry({0,0,490,160}); // temp size, hide the playlist thing.
+    setFixedSize(490, 160);
 }
 
 void MainWindow::initConnections()
 {
-    connect(m_playlistModel->playlist(), &QMediaPlaylist::currentIndexChanged, this, [=](int currentItem) {
-        bool isPlaying = m_mediaPlayer->playbackState() == QMediaPlayer::PlayingState;
-        m_mediaPlayer->setSource(m_playlistModel->playlist()->currentMedia());
-        if (isPlaying) m_mediaPlayer->play();
+    connect(m_mediaPlayer, &QMediaPlayer::metaDataChanged, this, [=](){
+        QMediaMetaData metadata(m_mediaPlayer->metaData());
+        setAudioMetadataForDisplay(metadata.stringValue(QMediaMetaData::Title),
+                                   metadata.stringValue(QMediaMetaData::Author),
+                                   metadata.stringValue(QMediaMetaData::AlbumTitle));
+        QVariant coverArt(metadata.value(QMediaMetaData::ThumbnailImage));
+        if (!coverArt.isNull()) {
+            ui->coverLabel->setPixmap(QPixmap::fromImage(coverArt.value<QImage>()));
+        } else {
+            qDebug() << "No ThumbnailImage!" << metadata.keys();
+            ui->coverLabel->setPixmap(QPixmap(":/icons/icons/media-album-cover.svg"));
+        }
     });
-    connect(m_playlistModel->playlist(), &QMediaPlaylist::currentMediaChanged, this, [=](const QUrl &fileUrl) {
+    connect(m_playlistManager, &PlaylistManager::currentIndexChanged, this, [=](int index){
+        QUrl fileUrl(m_playlistManager->model()->urlByIndex(index));
+        m_mediaPlayer->setSource(fileUrl);
+        m_mediaPlayer->play();
+
         ui->titleLabel->setText(fileUrl.fileName());
         ui->titleLabel->setToolTip(fileUrl.fileName());
 
@@ -435,39 +356,7 @@ void MainWindow::initConnections()
                 TagLib::AudioProperties *prop = fileRef.audioProperties();
                 setAudioPropertyInfoForDisplay(prop->sampleRate(), prop->bitrate(), prop->channels(), suffix);
             }
-
-            if (!fileRef.isNull() && fileRef.tag()) {
-                TagLib::Tag * tag = fileRef.tag();
-                setAudioMetadataForDisplay(QString::fromStdString(tag->title().to8Bit(true)),
-                                           QString::fromStdString(tag->artist().to8Bit(true)),
-                                           QString::fromStdString(tag->album().to8Bit(true)));
-            }
 #endif // NO_TAGLIB
-
-            using namespace spID3;
-            using namespace spFLAC;
-
-            bool coverLoaded = false;
-
-            if (suffix == "MP3") {
-                if (spID3::loadPictureData(filePath.toLocal8Bit().data())) {
-                    coverLoaded = true;
-                    QByteArray picData((const char*)spID3::getPictureDataPtr(), spID3::getPictureLength());
-                    ui->coverLabel->setPixmap(QPixmap::fromImage(QImage::fromData(picData)));
-                    spID3::freePictureData();
-                }
-            } else if (suffix == "FLAC") {
-                if (spFLAC::loadPictureData(filePath.toLocal8Bit().data())) {
-                    coverLoaded = true;
-                    QByteArray picData((const char*)spFLAC::getPictureDataPtr(), spFLAC::getPictureLength());
-                    ui->coverLabel->setPixmap(QPixmap::fromImage(QImage::fromData(picData)));
-                    spFLAC::freePictureData();
-                }
-            }
-
-            if (!coverLoaded) {
-                ui->coverLabel->setPixmap(QPixmap(":/icons/icons/media-album-cover.svg"));
-            }
         }
     });
 
@@ -506,35 +395,65 @@ void MainWindow::initConnections()
         ui->volumeSlider->setValue(vol * 100);
     });
 
-//    connect(m_mediaPlayer, static_cast<void(QMediaPlayer::*)(QMediaPlayer::Error)>(&QMediaPlayer::error),
-//            this, [=](QMediaPlayer::Error error) {
-//        switch (error) {
-//        default:
-//            break;
-//        }
-//        qDebug("%s aaaaaaaaaaaaa", m_mediaPlayer->errorString().toUtf8().data());
-//    });
+    connect(m_mediaPlayer, &QMediaPlayer::mediaStatusChanged, this, [=](QMediaPlayer::MediaStatus status){
+        if (status == QMediaPlayer::EndOfMedia) {
+            switch (m_playbackMode) {
+            case MainWindow::CurrentItemOnce:
+                // do nothing
+                break;
+            case MainWindow::CurrentItemInLoop:
+                m_mediaPlayer->play();
+                break;
+            case MainWindow::Sequential:
+                on_nextBtn_clicked();
+                break;
+            }
+        }
+    });
+
+    connect(this, &MainWindow::playbackModeChanged, this, [=](){
+        switch (m_playbackMode) {
+        case MainWindow::CurrentItemOnce:
+            ui->playbackModeBtn->setIcon(QIcon(":/icons/icons/media-repeat-single.png"));
+            break;
+        case MainWindow::CurrentItemInLoop:
+            ui->playbackModeBtn->setIcon(QIcon(":/icons/icons/media-playlist-repeat-song.png"));
+            break;
+        case MainWindow::Sequential:
+            ui->playbackModeBtn->setIcon(QIcon(":/icons/icons/media-playlist-repeat.png"));
+            break;
+        }
+    });
+
+   connect(m_mediaPlayer, &QMediaPlayer::errorOccurred, this, [=](QMediaPlayer::Error error, const QString &errorString) {
+        qDebug() << error << errorString;
+   });
 }
 
 void MainWindow::on_playbackModeBtn_clicked()
 {
-    QMediaPlaylist * playlist = m_playlistModel->playlist();
-    if (!playlist) return;
-
-    switch (playlist->playbackMode()) {
-    case QMediaPlaylist::CurrentItemInLoop:
-        playlist->setPlaybackMode(QMediaPlaylist::Loop);
+    switch (m_playbackMode) {
+    case MainWindow::CurrentItemOnce:
+        setProperty("playbackMode", MainWindow::CurrentItemInLoop);
         break;
-    case QMediaPlaylist::Loop:
-        playlist->setPlaybackMode(QMediaPlaylist::Sequential);
+    case MainWindow::CurrentItemInLoop:
+        setProperty("playbackMode", MainWindow::Sequential);
         break;
-    case QMediaPlaylist::Sequential:
-        playlist->setPlaybackMode(QMediaPlaylist::CurrentItemInLoop);
+    case MainWindow::Sequential:
+        setProperty("playbackMode", MainWindow::CurrentItemOnce);
         break;
-//    case QMediaPlaylist::Random:
-//        playlist->setPlaybackMode(QMediaPlaylist::CurrentItemInLoop);
-//        break;
     default:
         break;
     }
 }
+
+void MainWindow::on_playListBtn_clicked()
+{
+    setFixedHeight(size().height() < 200 ? 420 : 160);
+}
+
+void MainWindow::on_playlistView_activated(const QModelIndex &index)
+{
+    m_playlistManager->setCurrentIndex(index);
+}
+
