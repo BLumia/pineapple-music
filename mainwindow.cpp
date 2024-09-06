@@ -35,6 +35,7 @@ MainWindow::MainWindow(QWidget *parent)
         "*.mp3", "*.wav", "*.aiff", "*.ape", "*.flac", "*.ogg", "*.oga", "*.mpga"
     });
     m_mediaPlayer->setAudioOutput(m_audioOutput);
+    m_mediaPlayer->setLoops(QMediaPlayer::Infinite);
     ui->playlistView->setModel(m_playlistManager->model());
 
     this->setWindowFlags(Qt::FramelessWindowHint | Qt::WindowSystemMenuHint | Qt::WindowMinimizeButtonHint);
@@ -157,7 +158,6 @@ void MainWindow::mousePressEvent(QMouseEvent *event)
 void MainWindow::mouseMoveEvent(QMouseEvent *event)
 {
     if (event->buttons() & Qt::LeftButton && m_clickedOnWindow) {
-        qDebug() << "??" << event << event->flags() << event->isBeginEvent() << event->isEndEvent();
         window()->windowHandle()->startSystemMove();
         event->accept();
     }
@@ -168,7 +168,6 @@ void MainWindow::mouseMoveEvent(QMouseEvent *event)
 void MainWindow::mouseReleaseEvent(QMouseEvent *event)
 {
     m_clickedOnWindow = false;
-    qDebug() << "?";
     return QMainWindow::mouseReleaseEvent(event);
 }
 
@@ -402,7 +401,8 @@ void MainWindow::initConnections()
                 // do nothing
                 break;
             case MainWindow::CurrentItemInLoop:
-                m_mediaPlayer->play();
+                // also do nothing
+                // as long as we did `setLoops(Infinite)`, we won't even get there
                 break;
             case MainWindow::Sequential:
                 on_nextBtn_clicked();
@@ -414,12 +414,15 @@ void MainWindow::initConnections()
     connect(this, &MainWindow::playbackModeChanged, this, [=](){
         switch (m_playbackMode) {
         case MainWindow::CurrentItemOnce:
+            m_mediaPlayer->setLoops(QMediaPlayer::Once);
             ui->playbackModeBtn->setIcon(QIcon(":/icons/icons/media-repeat-single.png"));
             break;
         case MainWindow::CurrentItemInLoop:
+            m_mediaPlayer->setLoops(QMediaPlayer::Infinite);
             ui->playbackModeBtn->setIcon(QIcon(":/icons/icons/media-playlist-repeat-song.png"));
             break;
         case MainWindow::Sequential:
+            m_mediaPlayer->setLoops(QMediaPlayer::Once);
             ui->playbackModeBtn->setIcon(QIcon(":/icons/icons/media-playlist-repeat.png"));
             break;
         }

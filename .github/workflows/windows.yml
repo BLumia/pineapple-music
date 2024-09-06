@@ -1,0 +1,56 @@
+name: Windows CI
+
+on: [push, pull_request, workflow_dispatch]
+
+jobs:
+  msvc-cmake-build:
+  
+    strategy:
+      matrix:
+        vs: ['2022']
+        msvc_arch: ['x64']
+        qt_ver: ['6.7.2']
+
+    runs-on: windows-2022
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Install Qt
+      uses: jurplel/install-qt-action@v4
+      with:
+        arch: 'win64_msvc2019_64'
+        version: ${{ matrix.qt_ver }}
+        modules: 'qtmultimedia'
+    - name: Build
+      shell: cmd
+      run: |
+        :: ------ env ------
+        set PWD=%cd%
+        set VS=${{ matrix.vs }}
+        set VCVARS="C:\Program Files (x86)\Microsoft Visual Studio\%VS%\Enterprise\VC\Auxiliary\Build\vcvarsall.bat"
+        if not exist %VCVARS% set VCVARS="C:\Program Files\Microsoft Visual Studio\%VS%\Enterprise\VC\Auxiliary\Build\vcvarsall.bat"
+        call %VCVARS% ${{ matrix.msvc_arch }}
+        :: ------ dep ------
+        set CMAKE_PREFIX_PATH=%PWD%/dependencies_bin
+        mkdir dependencies_src
+        :: ===== pkg-config =====
+        choco install pkgconfiglite
+        set PKG_CONFIG_PATH=%PWD%/dependencies_bin/lib/pkgconfig
+        :: ===== taglib =====
+        git clone --recurse-submodules -q https://github.com/taglib/taglib.git dependencies_src/taglib
+        cmake .\dependencies_src\taglib -Bbuild_dependencies/taglib -DBUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX="dependencies_bin" || goto :error
+        cmake --build build_dependencies/taglib --config Release --target=install || goto :error
+        :: ------ app ------
+        cmake -Bbuild . -DCMAKE_INSTALL_PREFIX="%PWD%\build\" || goto :error
+        cmake --build build --config Release || goto :error
+        cmake --build build --config Release --target=install
+        :: ------ pkg ------
+        windeployqt --verbose=2 --no-quick-import --no-translations --no-opengl-sw --no-system-d3d-compiler --no-system-dxc-compiler --multimedia --skip-plugin-types tls,networkinformation build\bin\pmusic.exe
+        robocopy ./dependencies_bin/bin build/bin *.dll
+        if ErrorLevel 8 (exit /B 1)
+        copy LICENSE build/bin/
+        exit /B 0
+    - uses: actions/upload-artifact@v4
+      with:
+        name: "windows-msvc${{ matrix.vs }}-qt${{ matrix.qt_ver }}-cmake-package"
+        path: build/bin/*
