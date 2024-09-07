@@ -47,6 +47,8 @@ protected:
     void dropEvent(QDropEvent *e) override;
 
     void loadFile();
+    void play();
+
     void centerWindow();
 
 private slots:

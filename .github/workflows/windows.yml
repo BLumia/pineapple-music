@@ -39,10 +39,10 @@ jobs:
         :: ===== taglib =====
         git clone --recurse-submodules -q https://github.com/taglib/taglib.git dependencies_src/taglib
         cmake .\dependencies_src\taglib -Bbuild_dependencies/taglib -DBUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX="dependencies_bin" || goto :error
-        cmake --build build_dependencies/taglib --config Release --target=install || goto :error
+        cmake --build build_dependencies/taglib --config Release --target=install -j || goto :error
         :: ------ app ------
         cmake -Bbuild . -DCMAKE_INSTALL_PREFIX="%PWD%\build\" || goto :error
-        cmake --build build --config Release || goto :error
+        cmake --build build --config Release -j || goto :error
         cmake --build build --config Release --target=install
         :: ------ pkg ------
         windeployqt --verbose=2 --no-quick-import --no-translations --no-opengl-sw --no-system-d3d-compiler --no-system-dxc-compiler --multimedia --skip-plugin-types tls,networkinformation build\bin\pmusic.exe

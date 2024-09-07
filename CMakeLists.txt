@@ -45,15 +45,16 @@ set (EXE_NAME pmusic)
 file (GLOB PMUSIC_TS_FILES languages/*.ts)
 set (PMUSIC_CPP_FILES_FOR_I18N ${PMUSIC_CPP_FILES} ${PMUSIC_UI_FILES})
 
-qt_create_translation(PMUSIC_QM_FILES ${PMUSIC_CPP_FILES_FOR_I18N} ${PMUSIC_TS_FILES})
-
 add_executable(${EXE_NAME}
     ${PMUSIC_HEADER_FILES}
     ${PMUSIC_CPP_FILES}
     ${PMUSIC_UI_FILES}
     resources.qrc
+)
 
-    ${PMUSIC_QM_FILES}
+qt_add_translations(${EXE_NAME}
+TS_FILES
+    ${PMUSIC_TS_FILES}
 )
 
 if (NOT TagLib_FOUND)
@@ -107,18 +108,4 @@ set (INSTALL_TARGETS_DEFAULT_ARGS
 install (
     TARGETS ${EXE_NAME}
     ${INSTALL_TARGETS_DEFAULT_ARGS}
-)
-
-if (WIN32)
-    set (QM_FILE_INSTALL_DIR "${CMAKE_INSTALL_BINDIR}/translations")
-else ()
-    set (QM_FILE_INSTALL_DIR "${CMAKE_INSTALL_FULL_DATADIR}/pineapple-music/translations")
-    target_compile_definitions(${EXE_NAME}
-        PRIVATE QM_FILE_INSTALL_DIR=${QM_FILE_INSTALL_DIR}
-    )
-endif ()
-
-install (
-    FILES ${PMUSIC_QM_FILES}
-    DESTINATION ${QM_FILE_INSTALL_DIR}
 )

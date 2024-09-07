@@ -14,13 +14,9 @@ int main(int argc, char *argv[])
     QApplication a(argc, argv);
 
     QTranslator translator;
-    QString qmDir;
-#ifdef _WIN32
-    qmDir = QDir(QCoreApplication::applicationDirPath()).absoluteFilePath("translations");
-#else
-    qmDir = QT_STRINGIFY(QM_FILE_INSTALL_DIR);
-#endif
-    translator.load(QString("pineapple-music_%1").arg(QLocale::system().name()), qmDir);
+    if (translator.load(QLocale(), QLatin1String("pineapple-music"), QLatin1String("_"), QLatin1String(":/i18n"))) {
+        a.installTranslator(&translator);
+    }
     a.installTranslator(&translator);
 
     // parse commandline arguments

@@ -58,6 +58,10 @@ void MainWindow::commandlinePlayAudioFiles(QStringList audioFiles)
 
     if (!audioFileUrls.isEmpty()) {
         QModelIndex modelIndex = m_playlistManager->loadPlaylist(audioFileUrls);
+        if (modelIndex.isValid()) {
+            m_mediaPlayer->setSource(m_playlistManager->urlByIndex(modelIndex));
+            play();
+        }
     }
 }
 
@@ -190,7 +194,11 @@ void MainWindow::dropEvent(QDropEvent *e)
         return;
     }
 
-    m_playlistManager->loadPlaylist(urls);
+    QModelIndex modelIndex = m_playlistManager->loadPlaylist(urls);
+    if (modelIndex.isValid()) {
+        m_mediaPlayer->setSource(m_playlistManager->urlByIndex(modelIndex));
+        play();
+    }
 }
 
 void MainWindow::loadFile()
@@ -205,6 +213,32 @@ void MainWindow::loadFile()
     }
 
     m_playlistManager->loadPlaylist(urlList);
+    m_mediaPlayer->setSource(urlList.first());
+}
+
+void MainWindow::play()
+{
+    QUrl fileUrl(m_mediaPlayer->source());
+
+    m_mediaPlayer->play();
+
+    ui->titleLabel->setText(fileUrl.fileName());
+    ui->titleLabel->setToolTip(fileUrl.fileName());
+
+    if (fileUrl.isLocalFile()) {
+        QString filePath(fileUrl.toLocalFile());
+        QString suffix(filePath.mid(filePath.lastIndexOf('.') + 1));
+        suffix = suffix.toUpper();
+
+#ifndef NO_TAGLIB
+        TagLib::FileRef fileRef(filePath.toLocal8Bit().data());
+
+        if (!fileRef.isNull() && fileRef.audioProperties()) {
+            TagLib::AudioProperties *prop = fileRef.audioProperties();
+            setAudioPropertyInfoForDisplay(prop->sampleRate(), prop->bitrate(), prop->channels(), suffix);
+        }
+#endif // NO_TAGLIB
+    }
 }
 
 void MainWindow::centerWindow()
@@ -228,7 +262,7 @@ void MainWindow::on_playBtn_clicked()
 {
     if (m_mediaPlayer->mediaStatus() == QMediaPlayer::NoMedia) {
         loadFile();
-        m_mediaPlayer->play();
+        play();
     } else if (m_mediaPlayer->mediaStatus() == QMediaPlayer::InvalidMedia) {
         ui->propLabel->setText("Error: InvalidMedia" + m_mediaPlayer->errorString());
     } else {
@@ -287,12 +321,18 @@ void MainWindow::on_playbackSlider_valueChanged(int value)
 
 void MainWindow::on_prevBtn_clicked()
 {
-    m_playlistManager->setCurrentIndex(m_playlistManager->previousIndex());
+    QModelIndex index(m_playlistManager->previousIndex());
+    m_playlistManager->setCurrentIndex(index);
+    m_mediaPlayer->setSource(m_playlistManager->urlByIndex(index));
+    play();
 }
 
 void MainWindow::on_nextBtn_clicked()
 {
-    m_playlistManager->setCurrentIndex(m_playlistManager->nextIndex());
+    QModelIndex index(m_playlistManager->nextIndex());
+    m_playlistManager->setCurrentIndex(index);
+    m_mediaPlayer->setSource(m_playlistManager->urlByIndex(index));
+    play();
 }
 
 void MainWindow::on_volumeBtn_clicked()
@@ -336,27 +376,7 @@ void MainWindow::initConnections()
         }
     });
     connect(m_playlistManager, &PlaylistManager::currentIndexChanged, this, [=](int index){
-        QUrl fileUrl(m_playlistManager->model()->urlByIndex(index));
-        m_mediaPlayer->setSource(fileUrl);
-        m_mediaPlayer->play();
-
-        ui->titleLabel->setText(fileUrl.fileName());
-        ui->titleLabel->setToolTip(fileUrl.fileName());
-
-        if (fileUrl.isLocalFile()) {
-            QString filePath(fileUrl.toLocalFile());
-            QString suffix(filePath.mid(filePath.lastIndexOf('.') + 1));
-            suffix = suffix.toUpper();
-
-#ifndef NO_TAGLIB
-            TagLib::FileRef fileRef(filePath.toLocal8Bit().data());
-
-            if (!fileRef.isNull() && fileRef.audioProperties()) {
-                TagLib::AudioProperties *prop = fileRef.audioProperties();
-                setAudioPropertyInfoForDisplay(prop->sampleRate(), prop->bitrate(), prop->channels(), suffix);
-            }
-#endif // NO_TAGLIB
-        }
+        ui->playlistView->setCurrentIndex(m_playlistManager->model()->index(index));
     });
 
     connect(m_mediaPlayer, &QMediaPlayer::positionChanged, this, [=](qint64 pos) {
@@ -458,5 +478,7 @@ void MainWindow::on_playListBtn_clicked()
 void MainWindow::on_playlistView_activated(const QModelIndex &index)
 {
     m_playlistManager->setCurrentIndex(index);
+    m_mediaPlayer->setSource(m_playlistManager->urlByIndex(index));
+    play();
 }
 
