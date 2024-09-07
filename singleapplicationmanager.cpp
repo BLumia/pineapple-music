@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2024 Gary Wang <git@blumia.net>
+//
+// SPDX-License-Identifier: MIT
+
 #include "singleapplicationmanager.h"
 
 #include <QVariant>

@@ -1,6 +1,12 @@
-_**This is a not ready to use, toy project**_
+## Read Before Use
 
 Since **I** just need a simple player which *just works* right now, so I did many things in a dirty way. Don't feel so weird if you saw something I did in this project is using a bad approach.
+
+### Feature Notice
+
+- File format support will be limited by the [FFmpeg version that Qt 6 uses](https://doc.qt.io/qt-6/qtmultimedia-attribution-ffmpeg.html).
+  - ...which if you use Qt's official binary, only contains the LGPLv2.1+ part. (already good enough, tho)
+- No music library management support and there won't be one!
 
 ## Build
 
@@ -13,27 +19,19 @@ Current state, we need:
 
 Then we can build it with any proper c++ compiler like g++ or msvc.
 
-### Linux
+Building it just requires normal cmake building steps:
 
-Just normal build process as other program. Nothing special ;)
-
-### Windows
-
-Install the depts manually is a nightmare. I use [KDE Craft](https://community.kde.org/Craft) but MSYS2 should also works. FYI currently this project is not intended to works under Windows (it should works and I also did some simple test though).
-
-### macOS
-
-I don't have a mac, so no support at all.
+```shell
+$ cmake -Bbuild
+$ cmake --build build
+```
 
 ## Help Translation!
 
-TODO: move to Codeberg's Weblate.
+[Translate this project on Codeberg's Weblate!](https://translate.codeberg.org/projects/pineapple-apps/pineapple-music/)
 
 ## About License
 
-Since this is a toy repo, I don't spend much time about the license stuff. Currently this project use some assets and code from [ShadowPlayer](https://github.com/ShadowPower/ShadowPlayer), which have a very interesting license -- do whatever you want but cannot be used as homework -- obviously it's not a so called *free* license. I *may* do some license housecleaning works by replaceing the assets and code implementation when the code become reasonable, and the final codebase may probably released under MIT license.
+Pineapple Music as a whole is licensed under MIT license. Individual files may have a different, but compatible license.
 
-Anyway here is a list of file which is in non-free state (with license: do whatever you want but cannot be used as homework):
-
- - All png images inside `icons` folder.
- - seekableslider.{h,cpp}
+All *png* images inside `icons` folder are originally created by [@ShadowPower](https://github.com/ShadowPower/) for [ShadowPlayer](https://github.com/ShadowPower/ShadowPlayer). These images are licensed under [CC0](https://creativecommons.org/publicdomain/zero/1.0/legalcode) license, grant by the original author.

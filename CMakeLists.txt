@@ -14,7 +14,13 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(Qt6 6.5.1 COMPONENTS Widgets Multimedia Network LinguistTools REQUIRED)
+find_package(ECM 5.83.0 NO_MODULE)
 find_package(PkgConfig)
+
+if (ECM_FOUND)
+    set(CMAKE_MODULE_PATH ${ECM_MODULE_PATH} ${ECM_KDE_MODULE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
+    include(ECMAddAppIcon)
+endif()
 
 if (PKG_CONFIG_FOUND)
 pkg_check_modules(TagLib taglib IMPORTED_TARGET)
@@ -52,6 +58,14 @@ add_executable(${EXE_NAME}
     resources.qrc
 )
 
+if(ECM_FOUND)
+    ecm_add_app_icon(${EXE_NAME}
+    ICONS
+        dist/64-pineapple-music.png
+        dist/256-pineapple-music.png
+    )
+endif()
+
 qt_add_translations(${EXE_NAME}
 TS_FILES
     ${PMUSIC_TS_FILES}
@@ -86,15 +100,15 @@ elseif (UNIX)
     endif ()
 
     # install icon
-    install (
+    install(
         FILES icons/app-icon.svg
         DESTINATION "${CMAKE_INSTALL_DATADIR}/icons/hicolor/48x48/apps"
-        RENAME pineapple-music.svg
+        RENAME net.blumia.pineapple-music.svg
     )
 
     # install shortcut
-    install (
-        FILES pineapple-music.desktop
+    install(
+        FILES dist/net.blumia.pineapple-music.desktop
         DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/applications"
     )
 endif()

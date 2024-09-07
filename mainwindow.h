@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2024 Gary Wang <git@blumia.net>
+//
+// SPDX-License-Identifier: MIT
+
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
@@ -47,6 +51,7 @@ protected:
     void dropEvent(QDropEvent *e) override;
 
     void loadFile();
+    void loadByModelIndex(const QModelIndex &index);
     void play();
 
     void centerWindow();

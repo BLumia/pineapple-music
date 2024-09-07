@@ -40,6 +40,10 @@ jobs:
         git clone --recurse-submodules -q https://github.com/taglib/taglib.git dependencies_src/taglib
         cmake .\dependencies_src\taglib -Bbuild_dependencies/taglib -DBUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX="dependencies_bin" || goto :error
         cmake --build build_dependencies/taglib --config Release --target=install -j || goto :error
+        :: ===== ECM =====
+        git clone -q https://invent.kde.org/frameworks/extra-cmake-modules.git dependencies_src/extra-cmake-modules
+        cmake .\dependencies_src\extra-cmake-modules -Bbuild_dependencies/extra-cmake-modules -DCMAKE_INSTALL_PREFIX="dependencies_bin" -DBUILD_TESTING=OFF || goto :error
+        cmake --build build_dependencies/extra-cmake-modules --config Release --target=install || goto :error
         :: ------ app ------
         cmake -Bbuild . -DCMAKE_INSTALL_PREFIX="%PWD%\build\" || goto :error
         cmake --build build --config Release -j || goto :error
