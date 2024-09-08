@@ -14,13 +14,7 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(Qt6 6.5.1 COMPONENTS Widgets Multimedia Network LinguistTools REQUIRED)
-find_package(ECM 5.83.0 NO_MODULE)
 find_package(PkgConfig)
-
-if (ECM_FOUND)
-    set(CMAKE_MODULE_PATH ${ECM_MODULE_PATH} ${ECM_KDE_MODULE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
-    include(ECMAddAppIcon)
-endif()
 
 if (PKG_CONFIG_FOUND)
 pkg_check_modules(TagLib taglib IMPORTED_TARGET)
@@ -51,25 +45,21 @@ set (EXE_NAME pmusic)
 file (GLOB PMUSIC_TS_FILES languages/*.ts)
 set (PMUSIC_CPP_FILES_FOR_I18N ${PMUSIC_CPP_FILES} ${PMUSIC_UI_FILES})
 
-add_executable(${EXE_NAME}
+add_executable(${EXE_NAME} WIN32
     ${PMUSIC_HEADER_FILES}
     ${PMUSIC_CPP_FILES}
     ${PMUSIC_UI_FILES}
     resources.qrc
 )
 
-if(ECM_FOUND)
-    ecm_add_app_icon(${EXE_NAME}
-    ICONS
-        dist/64-pineapple-music.png
-        dist/256-pineapple-music.png
-    )
-endif()
-
 qt_add_translations(${EXE_NAME}
 TS_FILES
     ${PMUSIC_TS_FILES}
 )
+
+if (WIN32)
+    target_sources(${EXE_NAME} PRIVATE assets/pineapple-music.rc)
+endif ()
 
 if (NOT TagLib_FOUND)
     message (WARNING "TagLib not found!")
@@ -81,14 +71,6 @@ else ()
 endif ()
 
 target_link_libraries(${EXE_NAME} PRIVATE Qt::Widgets Qt::Multimedia Qt::Network)
-
-# Extra build settings
-if (WIN32)
-    set_property (
-        TARGET ${EXE_NAME}
-        PROPERTY WIN32_EXECUTABLE true
-    )
-endif ()
 
 # Install settings
 if (WIN32)

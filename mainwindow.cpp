@@ -369,15 +369,27 @@ void MainWindow::initConnections()
                 TagLib::AudioProperties *prop = fileRef.audioProperties();
                 setAudioPropertyInfoForDisplay(prop->sampleRate(), prop->bitrate(), prop->channels(), suffix);
             }
+
+            if (!fileRef.isNull() && fileRef.tag()) {
+                TagLib::Tag * tag = fileRef.tag();
+                setAudioMetadataForDisplay(QString::fromStdString(tag->title().to8Bit(true)),
+                                           QString::fromStdString(tag->artist().to8Bit(true)),
+                                           QString::fromStdString(tag->album().to8Bit(true)));
+            }
 #endif // NO_TAGLIB
         }
     });
 
     connect(m_mediaPlayer, &QMediaPlayer::metaDataChanged, this, [=](){
         QMediaMetaData metadata(m_mediaPlayer->metaData());
+        // it's known in some cases QMediaMetaData using the incorrect text codec for metadata
+        // see `02  Yoiyami Hanabi.mp3`'s Title. So we don't use Qt's one if tablib is available.
+        qDebug() << metadata.stringValue(QMediaMetaData::Title) << metadata.stringValue(QMediaMetaData::Author);
+#ifdef NO_TAGLIB
         setAudioMetadataForDisplay(metadata.stringValue(QMediaMetaData::Title),
                                    metadata.stringValue(QMediaMetaData::Author),
                                    metadata.stringValue(QMediaMetaData::AlbumTitle));
+#endif // NO_TAGLIB
         QVariant coverArt(metadata.value(QMediaMetaData::ThumbnailImage));
         if (!coverArt.isNull()) {
             ui->coverLabel->setPixmap(QPixmap::fromImage(coverArt.value<QImage>()));
