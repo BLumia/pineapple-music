@@ -25,6 +25,10 @@
 #include <QCollator>
 #include <QMimeData>
 #include <QWindow>
+#include <QStandardPaths>
+
+constexpr QSize miniSize(490, 160);
+constexpr QSize fullSize(490, 420);
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -45,6 +49,7 @@ MainWindow::MainWindow(QWidget *parent)
     this->setWindowFlags(Qt::FramelessWindowHint | Qt::WindowSystemMenuHint | Qt::WindowMinimizeButtonHint);
     this->setAttribute(Qt::WA_TranslucentBackground, true);
 
+    loadSkinData();
     initConnections();
     initUiAndAnimation();
 
@@ -142,10 +147,14 @@ void MainWindow::paintEvent(QPaintEvent * e)
     QPainter painter(this);
 
     painter.setPen(Qt::NoPen);
+    painter.setRenderHint(QPainter::SmoothPixmapTransform);
 
-    // Temp bg
-    painter.setBrush(QColor(20, 32, 83));
-    painter.drawRect(0, 0, width(), height());
+    if (m_skin.isNull()) {
+        painter.setBrush(QColor(40, 50, 123));
+        painter.drawRect(0, 0, width(), height());
+    } else {
+        painter.drawPixmap(0, 0, m_skin);
+    }
 
     painter.setBrush(QBrush(m_bgLinearGradient));
     painter.drawRect(0, 0, width(), height());
@@ -198,6 +207,11 @@ void MainWindow::dropEvent(QDropEvent *e)
         return;
     }
 
+    if (fileName.endsWith(".png") || fileName.endsWith(".jpg")) {
+        setSkin(fileName, true);
+        return;
+    }
+
     const QModelIndex & modelIndex = m_playlistManager->loadPlaylist(urls);
     if (modelIndex.isValid()) {
         loadByModelIndex(modelIndex);
@@ -207,9 +221,11 @@ void MainWindow::dropEvent(QDropEvent *e)
 
 void MainWindow::loadFile()
 {
+    QStringList musicFolders(QStandardPaths::standardLocations(QStandardPaths::MusicLocation));
+    musicFolders.append(QDir::homePath());
     QStringList files = QFileDialog::getOpenFileNames(this,
                                                       tr("Select songs to play"),
-                                                      QDir::homePath(),
+                                                      musicFolders.first(),
                                                       tr("Audio Files") + " (*.mp3 *.wav *.aiff *.ape *.flac *.ogg *.oga)");
     QList<QUrl> urlList;
     for (const QString & fileName : files) {
@@ -228,6 +244,16 @@ void MainWindow::loadByModelIndex(const QModelIndex & index)
 void MainWindow::play()
 {
     m_mediaPlayer->play();
+}
+
+void MainWindow::setSkin(QString imagePath, bool save)
+{
+    m_skin = QPixmap(imagePath);
+    if (save) {
+        saveSkinData();
+    }
+    m_skin = m_skin.scaled(fullSize, Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation);
+    update();
 }
 
 void MainWindow::centerWindow()
@@ -336,8 +362,8 @@ void MainWindow::on_minimumWindowBtn_clicked()
 
 void MainWindow::initUiAndAnimation()
 {
-    m_bgLinearGradient.setColorAt(0, QColor(255, 255, 255, 25)); // a:0
-    m_bgLinearGradient.setColorAt(1, QColor(255, 255, 255, 75)); // a:200
+    m_bgLinearGradient.setColorAt(0, QColor(0, 0, 0, 25));
+    m_bgLinearGradient.setColorAt(1, QColor(0, 0, 0, 80));
     m_bgLinearGradient.setStart(0, 0);
     m_bgLinearGradient.setFinalStop(0, height());
 
@@ -346,7 +372,7 @@ void MainWindow::initUiAndAnimation()
     m_fadeOutAnimation->setStartValue(1);
     m_fadeOutAnimation->setEndValue(0);
     connect(m_fadeOutAnimation, &QPropertyAnimation::finished, this, &QMainWindow::close);
-    setFixedSize(490, 160);
+    setFixedSize(miniSize);
 }
 
 void MainWindow::initConnections()
@@ -476,6 +502,34 @@ void MainWindow::initConnections()
    });
 }
 
+void MainWindow::loadSkinData()
+{
+    QFile file(QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation) + "/skin.dat");
+    bool canOpen = file.open(QIODevice::ReadOnly);
+    if (!canOpen) return;
+    QDataStream stream(&file);
+    quint32 magic;
+    stream >> magic;
+    if (magic == 0x78297000) {
+        stream >> m_skin;
+        m_skin = m_skin.scaled(fullSize, Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation);
+    }
+    file.close();
+}
+
+void MainWindow::saveSkinData()
+{
+    QDir configDir(QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation));
+    if (!configDir.exists()) {
+        configDir.mkpath(".");
+    }
+    QFile file(configDir.absoluteFilePath("skin.dat"));
+    file.open(QIODevice::WriteOnly);
+    QDataStream stream(&file);
+    stream << (quint32)0x78297000 << m_skin;
+    file.close();
+}
+
 void MainWindow::on_playbackModeBtn_clicked()
 {
     switch (m_playbackMode) {
@@ -493,9 +547,21 @@ void MainWindow::on_playbackModeBtn_clicked()
     }
 }
 
+void MainWindow::on_setSkinBtn_clicked()
+{
+    QStringList imageFolders(QStandardPaths::standardLocations(QStandardPaths::PicturesLocation));
+    imageFolders.append(QDir::homePath());
+    QString image = QFileDialog::getOpenFileName(this, tr("Select image as background skin"),
+                                                 imageFolders.first(),
+                                                 tr("Image files (*.jpg *.jpeg *.png)"));
+    if(!image.isEmpty()) {
+        setSkin(image, true);
+    }
+}
+
 void MainWindow::on_playListBtn_clicked()
 {
-    setFixedHeight(size().height() < 200 ? 420 : 160);
+    setFixedSize(size().height() < 200 ? fullSize : miniSize);
 }
 
 void MainWindow::on_playlistView_activated(const QModelIndex &index)
@@ -504,4 +570,3 @@ void MainWindow::on_playlistView_activated(const QModelIndex &index)
     loadByModelIndex(index);
     play();
 }
-

@@ -54,6 +54,8 @@ protected:
     void loadByModelIndex(const QModelIndex &index);
     void play();
 
+    void setSkin(QString imagePath, bool save);
+
     void centerWindow();
 
 private slots:
@@ -67,9 +69,8 @@ private slots:
     void on_nextBtn_clicked();
     void on_volumeBtn_clicked();
     void on_minimumWindowBtn_clicked();
-
+    void on_setSkinBtn_clicked();
     void on_playListBtn_clicked();
-
     void on_playlistView_activated(const QModelIndex &index);
 
 signals:
@@ -79,6 +80,7 @@ private:
     bool m_clickedOnWindow = false;
     bool m_playbackSliderPressed = false;
     QLinearGradient m_bgLinearGradient;
+    QPixmap m_skin;
     enum PlaybackMode m_playbackMode = CurrentItemInLoop;
 
     Ui::MainWindow *ui;
@@ -90,6 +92,9 @@ private:
 
     void initUiAndAnimation();
     void initConnections();
+
+    void loadSkinData();
+    void saveSkinData();
 
     static QString ms2str(qint64 ms);
     static QList<QUrl> strlst2urllst(QStringList strlst);
