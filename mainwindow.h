@@ -11,6 +11,7 @@
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
 
+class QMediaDevices;
 class QMediaPlayer;
 class QAudioOutput;
 class QPropertyAnimation;
@@ -85,6 +86,7 @@ private:
 
     Ui::MainWindow *ui;
 
+    QMediaDevices *m_mediaDevices;
     QMediaPlayer *m_mediaPlayer;
     QAudioOutput *m_audioOutput;
     QPropertyAnimation *m_fadeOutAnimation;

@@ -26,6 +26,8 @@
 #include <QMimeData>
 #include <QWindow>
 #include <QStandardPaths>
+#include <QMediaDevices>
+#include <QAudioDevice>
 
 constexpr QSize miniSize(490, 160);
 constexpr QSize fullSize(490, 420);
@@ -33,12 +35,12 @@ constexpr QSize fullSize(490, 420);
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
+    , m_mediaDevices(new QMediaDevices(this))
     , m_mediaPlayer(new QMediaPlayer(this))
     , m_audioOutput(new QAudioOutput(this))
     , m_playlistManager(new PlaylistManager(this))
 {
     ui->setupUi(this);
-
     m_playlistManager->setAutoLoadFilterSuffixes({
         "*.mp3", "*.wav", "*.aiff", "*.ape", "*.flac", "*.ogg", "*.oga", "*.mpga"
     });
@@ -207,7 +209,8 @@ void MainWindow::dropEvent(QDropEvent *e)
         return;
     }
 
-    if (fileName.endsWith(".png") || fileName.endsWith(".jpg")) {
+    if (fileName.endsWith(".png") || fileName.endsWith(".jpg") ||
+        fileName.endsWith(".jpeg") || fileName.endsWith(".gif")) {
         setSkin(fileName, true);
         return;
     }
@@ -227,6 +230,7 @@ void MainWindow::loadFile()
                                                       tr("Select songs to play"),
                                                       musicFolders.first(),
                                                       tr("Audio Files") + " (*.mp3 *.wav *.aiff *.ape *.flac *.ogg *.oga)");
+    if (files.isEmpty()) return;
     QList<QUrl> urlList;
     for (const QString & fileName : files) {
         urlList.append(QUrl::fromLocalFile(fileName));
@@ -377,6 +381,10 @@ void MainWindow::initUiAndAnimation()
 
 void MainWindow::initConnections()
 {
+    connect(m_mediaDevices, &QMediaDevices::audioOutputsChanged, this, [=]{
+        m_audioOutput->setDevice(m_mediaDevices->defaultAudioOutput());
+    });
+
     connect(m_mediaPlayer, &QMediaPlayer::sourceChanged, this, [=](){
         QUrl fileUrl(m_mediaPlayer->source());
 
@@ -553,7 +561,7 @@ void MainWindow::on_setSkinBtn_clicked()
     imageFolders.append(QDir::homePath());
     QString image = QFileDialog::getOpenFileName(this, tr("Select image as background skin"),
                                                  imageFolders.first(),
-                                                 tr("Image files (*.jpg *.jpeg *.png)"));
+                                                 tr("Image files (*.jpg *.jpeg *.png *.gif)"));
     if(!image.isEmpty()) {
         setSkin(image, true);
     }
