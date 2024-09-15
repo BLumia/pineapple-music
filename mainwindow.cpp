@@ -42,7 +42,7 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
     m_playlistManager->setAutoLoadFilterSuffixes({
-        "*.mp3", "*.wav", "*.aiff", "*.ape", "*.flac", "*.ogg", "*.oga", "*.mpga"
+        "*.mp3", "*.wav", "*.aiff", "*.ape", "*.flac", "*.ogg", "*.oga", "*.mpga", "*.aac"
     });
     m_mediaPlayer->setAudioOutput(m_audioOutput);
     m_mediaPlayer->setLoops(QMediaPlayer::Infinite);
