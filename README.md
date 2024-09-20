@@ -7,6 +7,7 @@ Since **I** just need a simple player which *just works* right now, so I did man
 - File format support will be limited by the [FFmpeg version that Qt 6 uses](https://doc.qt.io/qt-6/qtmultimedia-attribution-ffmpeg.html).
   - ...which if you use Qt's official binary, only contains the LGPLv2.1+ part. (already good enough, tho)
 - No music library management support and there won't be one!
+  - It'll auto-load music files in the same folder of the file that you attempted to play, so organize your music files on a folder-basis.
 
 ## Build
 

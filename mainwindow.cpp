@@ -6,6 +6,7 @@
 #include "./ui_mainwindow.h"
 
 #include "playlistmanager.h"
+#include "lrcbar.h"
 
 // taglib
 #ifndef NO_TAGLIB
@@ -38,6 +39,7 @@ MainWindow::MainWindow(QWidget *parent)
     , m_mediaDevices(new QMediaDevices(this))
     , m_mediaPlayer(new QMediaPlayer(this))
     , m_audioOutput(new QAudioOutput(this))
+    , m_lrcbar(new LrcBar(nullptr))
     , m_playlistManager(new PlaylistManager(this))
 {
     ui->setupUi(this);
@@ -48,8 +50,8 @@ MainWindow::MainWindow(QWidget *parent)
     m_mediaPlayer->setLoops(QMediaPlayer::Infinite);
     ui->playlistView->setModel(m_playlistManager->model());
 
-    this->setWindowFlags(Qt::FramelessWindowHint | Qt::WindowSystemMenuHint | Qt::WindowMinimizeButtonHint);
-    this->setAttribute(Qt::WA_TranslucentBackground, true);
+    setWindowFlags(Qt::FramelessWindowHint | Qt::WindowSystemMenuHint | Qt::WindowMinimizeButtonHint);
+    setAttribute(Qt::WA_TranslucentBackground, true);
 
     loadSkinData();
     initConnections();
@@ -60,6 +62,7 @@ MainWindow::MainWindow(QWidget *parent)
 
 MainWindow::~MainWindow()
 {
+    delete m_lrcbar;
     delete ui;
 }
 
@@ -215,6 +218,11 @@ void MainWindow::dropEvent(QDropEvent *e)
         return;
     }
 
+    if (fileName.endsWith(".lrc")) {
+        m_lrcbar->loadLyrics(fileName);
+        return;
+    }
+
     const QModelIndex & modelIndex = m_playlistManager->loadPlaylist(urls);
     if (modelIndex.isValid()) {
         loadByModelIndex(modelIndex);
@@ -238,11 +246,13 @@ void MainWindow::loadFile()
 
     m_playlistManager->loadPlaylist(urlList);
     m_mediaPlayer->setSource(urlList.first());
+    m_lrcbar->loadLyrics(urlList.first().toLocalFile());
 }
 
 void MainWindow::loadByModelIndex(const QModelIndex & index)
 {
     m_mediaPlayer->setSource(m_playlistManager->urlByIndex(index));
+    m_lrcbar->loadLyrics(m_playlistManager->localFileByIndex(index));
 }
 
 void MainWindow::play()
@@ -441,6 +451,7 @@ void MainWindow::initConnections()
         if (m_mediaPlayer->duration() != 0) {
             ui->playbackSlider->setSliderPosition(ui->playbackSlider->maximum() * pos / m_mediaPlayer->duration());
         }
+        m_lrcbar->playbackPositionChanged(pos, m_mediaPlayer->duration());
     });
 
     connect(m_audioOutput, &QAudioOutput::mutedChanged, this, [=](bool muted) {
@@ -578,3 +589,13 @@ void MainWindow::on_playlistView_activated(const QModelIndex &index)
     loadByModelIndex(index);
     play();
 }
+
+void MainWindow::on_lrcBtn_clicked()
+{
+    if (m_lrcbar->isVisible()) {
+        m_lrcbar->hide();
+    } else {
+        m_lrcbar->show();
+    }
+}
+

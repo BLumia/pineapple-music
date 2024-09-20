@@ -17,6 +17,7 @@ class QAudioOutput;
 class QPropertyAnimation;
 QT_END_NAMESPACE
 
+class LrcBar;
 class PlaylistManager;
 class MainWindow : public QMainWindow
 {
@@ -73,6 +74,7 @@ private slots:
     void on_setSkinBtn_clicked();
     void on_playListBtn_clicked();
     void on_playlistView_activated(const QModelIndex &index);
+    void on_lrcBtn_clicked();
 
 signals:
     void playbackModeChanged(enum PlaybackMode mode);
@@ -89,6 +91,7 @@ private:
     QMediaDevices *m_mediaDevices;
     QMediaPlayer *m_mediaPlayer;
     QAudioOutput *m_audioOutput;
+    LrcBar *m_lrcbar;
     QPropertyAnimation *m_fadeOutAnimation;
     PlaylistManager *m_playlistManager;
 

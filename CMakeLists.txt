@@ -26,6 +26,8 @@ set (PMUSIC_CPP_FILES
     seekableslider.cpp
     playlistmanager.cpp
     singleapplicationmanager.cpp
+    lrcbar.cpp
+    lyricsmanager.cpp
 )
 
 set (PMUSIC_HEADER_FILES
@@ -33,6 +35,8 @@ set (PMUSIC_HEADER_FILES
     seekableslider.h
     playlistmanager.h
     singleapplicationmanager.h
+    lrcbar.h
+    lyricsmanager.h
 )
 
 set (PMUSIC_UI_FILES

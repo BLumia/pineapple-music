@@ -20,7 +20,7 @@
    <bool>true</bool>
   </property>
   <property name="windowTitle">
-   <string>Pineapple Player</string>
+   <string>Pineapple Music</string>
   </property>
   <property name="windowIcon">
    <iconset resource="resources.qrc">
@@ -315,25 +315,51 @@ QListView {
             </widget>
            </item>
            <item>
-            <widget class="QLabel" name="propLabel">
-             <property name="text">
-              <string>Drag and drop file to load</string>
+            <layout class="QHBoxLayout" name="horizontalLayout_2">
+             <property name="spacing">
+              <number>0</number>
              </property>
-            </widget>
+             <item>
+              <widget class="QLabel" name="propLabel">
+               <property name="text">
+                <string>Drag and drop file to load</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="lrcBtn">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="text">
+                <string comment="Lyrics">Lrc</string>
+               </property>
+               <property name="iconSize">
+                <size>
+                 <width>20</width>
+                 <height>20</height>
+                </size>
+               </property>
+              </widget>
+             </item>
+            </layout>
            </item>
            <item>
             <layout class="QHBoxLayout" name="playbackTimeLayout">
              <item>
               <widget class="QLabel" name="nowTimeLabel">
                <property name="text">
-                <string>0:00</string>
+                <string notr="true">0:00</string>
                </property>
               </widget>
              </item>
              <item>
               <widget class="QLabel" name="totalTimeLabel">
                <property name="text">
-                <string>0:00</string>
+                <string notr="true">0:00</string>
                </property>
                <property name="alignment">
                 <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
