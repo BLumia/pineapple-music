@@ -6,7 +6,11 @@
 
 #include <QHash>
 #include <QList>
+#include <QLoggingCategory>
 #include <QObject>
+
+Q_DECLARE_LOGGING_CATEGORY(lcLyrics)
+Q_DECLARE_LOGGING_CATEGORY(lcLyricsParser)
 
 class LyricsManager : public QObject
 {

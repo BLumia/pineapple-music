@@ -7,6 +7,14 @@
 #include <QDir>
 #include <QFileInfo>
 #include <QRegularExpression>
+#include <QStringConverter>
+
+#ifndef NO_UCHARDET
+#include <uchardet/uchardet.h>
+#endif
+
+Q_LOGGING_CATEGORY(lcLyrics, "pmusic.lyrics")
+Q_LOGGING_CATEGORY(lcLyricsParser, "pmusic.lyrics.parser")
 
 LyricsManager::LyricsManager(QObject *parent)
     : QObject(parent)
@@ -35,8 +43,25 @@ bool LyricsManager::loadLyrics(QString filepath)
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
         return false;
     }
-    QTextStream stream(&file);
-    QStringList lines = QString(stream.readAll()).split('\n');
+    QByteArray fileContent(file.readAll());
+#ifndef NO_UCHARDET
+    uchardet_t handle = uchardet_new();
+    uchardet_handle_data(handle, fileContent.data(), fileContent.length());
+    uchardet_data_end(handle);
+    const char* encoding = uchardet_get_charset(handle);
+    qCDebug(lcLyrics) << "Detected encoding:" << (encoding == NULL ? "unknown" : encoding);
+    QStringList lines;
+    if (QStringConverter::availableCodecs().contains(QString(encoding))) {
+        auto toUtf16 = QStringDecoder(encoding);
+        QString decodedResult = toUtf16(fileContent);
+        lines = decodedResult.split('\n');
+    } else {
+        lines = QString(fileContent).split('\n');
+    }
+    uchardet_delete(handle);
+#else
+    QStringList lines = QString(fileContent).split('\n');
+#endif
     file.close();
 
     // parse lyrics timestamp
@@ -55,19 +80,28 @@ bool LyricsManager::loadLyrics(QString filepath)
                 if (tag == QLatin1String("offset")) {
                     // The value is prefixed with either + or -, with + causing lyrics to appear sooner
                     m_timeOffset = -tagMatch.captured(2).toInt();
-                    qDebug() << m_timeOffset;
+                    qCDebug(lcLyricsParser) << m_timeOffset;
                 }
-                qDebug() << "[tag]" << tagMatch.captured(1) << tagMatch.captured(2);
+                qCDebug(lcLyricsParser) << "[tag]" << tagMatch.captured(1) << tagMatch.captured(2);
                 continue;
             }
         }
 
+        QList<int> timestamps;
+        QString currentLrc;
         QRegularExpressionMatch match = lrcRegex.match(line);
-        if (match.hasMatch()) {
+        while (match.hasMatch()) {
             tagSectionPassed = true;
             QTime timestamp(QTime::fromString(match.captured(1), "m:s.zz"));
-            m_lyricsMap.insert(timestamp.msecsSinceStartOfDay(), match.captured(2));
-            qDebug() << "[lrc]" << match.captured(1) << match.captured(2);
+            timestamps.append(timestamp.msecsSinceStartOfDay());
+            currentLrc = match.captured(2);
+            match = lrcRegex.match(currentLrc);
+        }
+        if (!timestamps.isEmpty()) {
+            for (int timestamp : std::as_const(timestamps)) {
+                m_lyricsMap.insert(timestamp, currentLrc);
+                qCDebug(lcLyricsParser) << "[lrc]" << timestamp << currentLrc;
+            }
         }
     }
     if (!m_lyricsMap.isEmpty()) {

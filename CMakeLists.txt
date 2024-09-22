@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 3.12)
 project(pineapple-music LANGUAGES CXX)
 
 include (GNUInstallDirs)
+include (FeatureSummary)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
@@ -13,7 +14,8 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(Qt6 6.5.1 COMPONENTS Widgets Multimedia Network LinguistTools REQUIRED)
+find_package(Qt6 6.6 COMPONENTS Widgets Multimedia Network LinguistTools REQUIRED)
+find_package(uchardet)
 find_package(PkgConfig)
 
 if (PKG_CONFIG_FOUND)
@@ -74,6 +76,15 @@ else ()
     target_link_libraries(${EXE_NAME} PRIVATE PkgConfig::TagLib)
 endif ()
 
+if (NOT uchardet_FOUND)
+    message (WARNING "uchardet not found!")
+    target_compile_definitions(${EXE_NAME} PRIVATE
+        NO_UCHARDET=1
+    )
+else ()
+    target_link_libraries (${EXE_NAME} PRIVATE uchardet::libuchardet)
+endif ()
+
 target_link_libraries(${EXE_NAME} PRIVATE Qt::Widgets Qt::Multimedia Qt::Network)
 
 # Install settings
@@ -109,3 +120,5 @@ install (
     TARGETS ${EXE_NAME}
     ${INSTALL_TARGETS_DEFAULT_ARGS}
 )
+
+feature_summary(WHAT ALL INCLUDE_QUIET_PACKAGES FATAL_ON_MISSING_REQUIRED_PACKAGES)
