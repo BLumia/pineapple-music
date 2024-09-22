@@ -25,7 +25,7 @@ build_script:
   - choco install pkgconfiglite
   - cd 3rdparty
 # build uchardet
-  - git clone -q https://gitlab.freedesktop.org/uchardet/uchardet.git
+  - git clone -q https://gitlab.freedesktop.org/uchardet/uchardet.git --branch v0.0.8 --single-branch
   - cd uchardet
   - cmake -G "Ninja" . -DCMAKE_INSTALL_PREFIX=%PACKAGE_INSTALL_ROOT% -DBUILD_BINARY=OFF
   - cmake --build . --target install

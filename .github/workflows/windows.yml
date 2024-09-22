@@ -35,7 +35,7 @@ jobs:
         mkdir dependencies_src
         :: ===== uchardet =====
         echo ::group::build uchardet
-        git clone -q https://gitlab.freedesktop.org/BLumia/uchardet.git --branch msvc dependencies_src/uchardet
+        git clone -q https://gitlab.freedesktop.org/uchardet/uchardet.git --branch v0.0.8 --single-branch dependencies_src/uchardet
         cmake .\dependencies_src\uchardet -Bbuild_dependencies/uchardet -DBUILD_BINARY=OFF -DCMAKE_INSTALL_PREFIX="dependencies_bin" || goto :error
         cmake --build build_dependencies/uchardet --config Release --target=install -j || goto :error
         echo ::endgroup::
