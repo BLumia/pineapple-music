@@ -40,7 +40,7 @@ build_script:
 # finally...
   - mkdir build
   - cd build
-  - cmake .. -G "Ninja" -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=%CMAKE_INSTALL_ROOT% -DCMAKE_INSTALL_PREFIX='%cd%'
+  - cmake .. -G "Ninja" -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=%PACKAGE_INSTALL_ROOT% -DCMAKE_INSTALL_PREFIX='%cd%'
   - cmake --build .
   - cmake --build . --target install
 # fixme: I don't know how to NOT make the binary installed to the ./bin/ folder...

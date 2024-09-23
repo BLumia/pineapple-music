@@ -34,11 +34,11 @@ jobs:
         set CMAKE_PREFIX_PATH=%PWD%/dependencies_bin
         mkdir dependencies_src
         :: ===== uchardet =====
-        echo "::group::build uchardet"
+        echo ::group::build uchardet
         git clone -q https://gitlab.freedesktop.org/BLumia/uchardet.git --branch msvc dependencies_src/uchardet
         cmake .\dependencies_src\uchardet -Bbuild_dependencies/uchardet -DBUILD_BINARY=OFF -DCMAKE_INSTALL_PREFIX="dependencies_bin" || goto :error
         cmake --build build_dependencies/uchardet --config Release --target=install -j || goto :error
-        echo "::endgroup::"
+        echo ::endgroup::
         :: ===== pkg-config =====
         choco install pkgconfiglite
         set PKG_CONFIG_PATH=%PWD%/dependencies_bin/lib/pkgconfig
