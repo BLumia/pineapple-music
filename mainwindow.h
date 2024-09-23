@@ -75,6 +75,7 @@ private slots:
     void on_playListBtn_clicked();
     void on_playlistView_activated(const QModelIndex &index);
     void on_lrcBtn_clicked();
+    void on_actionHelp_triggered();
 
 signals:
     void playbackModeChanged(enum PlaybackMode mode);

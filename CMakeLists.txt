@@ -68,19 +68,13 @@ if (WIN32)
 endif ()
 
 if (NOT TagLib_FOUND)
-    message (WARNING "TagLib not found!")
-    target_compile_definitions(${EXE_NAME} PRIVATE
-        NO_TAGLIB=1
-    )
+    target_compile_definitions(${EXE_NAME} PRIVATE NO_TAGLIB=1)
 else ()
     target_link_libraries(${EXE_NAME} PRIVATE PkgConfig::TagLib)
 endif ()
 
 if (NOT uchardet_FOUND)
-    message (WARNING "uchardet not found!")
-    target_compile_definitions(${EXE_NAME} PRIVATE
-        NO_UCHARDET=1
-    )
+    target_compile_definitions(${EXE_NAME} PRIVATE NO_UCHARDET=1)
 else ()
     target_link_libraries (${EXE_NAME} PRIVATE uchardet::libuchardet)
 endif ()

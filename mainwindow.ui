@@ -657,6 +657,17 @@ QListView {
     </item>
    </layout>
   </widget>
+  <action name="actionHelp">
+   <property name="text">
+    <string>help</string>
+   </property>
+   <property name="shortcut">
+    <string>F1</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
  </widget>
  <customwidgets>
   <customwidget>

@@ -29,6 +29,8 @@
 #include <QStandardPaths>
 #include <QMediaDevices>
 #include <QAudioDevice>
+#include <QMessageBox>
+#include <QStringBuilder>
 
 constexpr QSize miniSize(490, 160);
 constexpr QSize fullSize(490, 420);
@@ -49,6 +51,9 @@ MainWindow::MainWindow(QWidget *parent)
     m_mediaPlayer->setAudioOutput(m_audioOutput);
     m_mediaPlayer->setLoops(QMediaPlayer::Infinite);
     ui->playlistView->setModel(m_playlistManager->model());
+
+    ui->actionHelp->setShortcut(QKeySequence::HelpContents);
+    addAction(ui->actionHelp);
 
     setWindowFlags(Qt::FramelessWindowHint | Qt::WindowSystemMenuHint | Qt::WindowMinimizeButtonHint);
     setAttribute(Qt::WA_TranslucentBackground, true);
@@ -597,5 +602,33 @@ void MainWindow::on_lrcBtn_clicked()
     } else {
         m_lrcbar->show();
     }
+}
+
+
+void MainWindow::on_actionHelp_triggered()
+{
+    QMessageBox infoBox(this);
+    infoBox.setIcon(QMessageBox::Information);
+    infoBox.setWindowTitle(tr("About"));
+    infoBox.setStandardButtons(QMessageBox::Ok);
+    infoBox.setText(
+        tr("Pineapple Music") %
+        "\n\n" %
+        tr("Based on the following free software libraries:") %
+        "\n\n" %
+        QStringLiteral("- [Qt](https://www.qt.io/) %1\n").arg(QT_VERSION_STR) %
+#ifndef NO_TAGLIB
+        QStringLiteral("- [TagLib](https://github.com/taglib/taglib)\n") %
+#endif // NO_TAGLIB
+#ifndef NO_UCHARDET
+        QStringLiteral("- [uchardet](https://www.freedesktop.org/wiki/Software/uchardet/)\n") %
+#endif // NO_TAGLIB
+        "\n"
+        "[Source Code](https://github.com/BLumia/pineapple-music)\n"
+        "\n"
+        "Copyright &copy; 2024 [BLumia](https://github.com/BLumia/)"
+        );
+    infoBox.setTextFormat(Qt::MarkdownText);
+    infoBox.exec();
 }
 
