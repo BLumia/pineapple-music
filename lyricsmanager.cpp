@@ -123,12 +123,12 @@ void LyricsManager::updateCurrentTimeMs(int curTimeMs, int totalTimeMs)
     if (!hasLyrics()) return;
 
     // TODO: we don't need to find from the top everytime the time is updated
-    auto iter = std::find_if(m_timestampList.begin(), m_timestampList.end() + 1, [&curTimeMs, this](int timestamp) -> bool {
+    auto iter = std::find_if(m_timestampList.begin(), m_timestampList.end(), [&curTimeMs, this](int timestamp) -> bool {
         return (timestamp + m_timeOffset) > curTimeMs;
     });
 
-    m_nextLyricsTime = (iter == m_timestampList.end() + 1) ? totalTimeMs : *iter;
-    if (iter != m_timestampList.begin() && iter != (m_timestampList.end() + 1)) {
+    m_nextLyricsTime = iter == m_timestampList.end() ? totalTimeMs : *iter;
+    if (iter != m_timestampList.begin()) {
         iter--;
     }
     m_currentLyricsTime = *iter;
