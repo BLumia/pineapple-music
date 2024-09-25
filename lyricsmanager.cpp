@@ -66,7 +66,7 @@ bool LyricsManager::loadLyrics(QString filepath)
 
     // parse lyrics timestamp
     QRegularExpression tagRegex(R"regex(\[(ti|ar|al|au|length|by|offset|tool|re|ve|#):\s?([^\]]*)\]$)regex");
-    QRegularExpression lrcRegex(R"regex(\[(\d{2,3}:\d{2}\.\d{2})\](.*))regex");
+    QRegularExpression lrcRegex(R"regex(\[(\d{2,3}:\d{2}\.\d{2,3})\](.*))regex");
     bool tagSectionPassed = false;
 
     for (QString line : std::as_const(lines)) {
