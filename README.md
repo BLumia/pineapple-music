@@ -8,6 +8,10 @@ Since **I** just need a simple player which *just works* right now, so I did man
   - ...which if you use Qt's official binary, only contains the LGPLv2.1+ part. (already good enough, tho)
 - No music library management support and there won't be one!
   - It'll auto-load music files in the same folder of the file that you attempted to play, so organize your music files on a folder-basis.
+- Limited lyrics (`.lrc`) loading support:
+  - Currently no `.tlrc` (for translated lyrics) or `.rlrc` (for romanized lyrics) support.
+  - Multi-line lyrics and duplicated timestamps are not supported
+  - Extensions (Walaoke and A2 extension) are not supported
 
 ## Build
 

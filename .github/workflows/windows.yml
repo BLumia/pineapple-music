@@ -9,7 +9,7 @@ jobs:
       matrix:
         vs: ['2022']
         msvc_arch: ['x64']
-        qt_ver: ['6.7.2']
+        qt_ver: ['6.7.3']
 
     runs-on: windows-2022
 
