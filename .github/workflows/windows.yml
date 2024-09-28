@@ -20,7 +20,7 @@ jobs:
       with:
         arch: 'win64_msvc2019_64'
         version: ${{ matrix.qt_ver }}
-        modules: 'qtmultimedia'
+        modules: 'qtmultimedia qt5compat'
     - name: Build
       shell: cmd
       run: |
@@ -51,11 +51,11 @@ jobs:
         cmake .\dependencies_src\taglib -Bbuild_dependencies/taglib -DBUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX="dependencies_bin" || goto :error
         cmake --build build_dependencies/taglib --config Release --target=install -j || goto :error
         :: ------ app ------
-        cmake -Bbuild . -DCMAKE_INSTALL_PREFIX="%PWD%\build\" || goto :error
+        cmake -Bbuild . -DUSE_QTEXTCODEC=ON -DCMAKE_INSTALL_PREFIX="%PWD%\build\" || goto :error
         cmake --build build --config Release -j || goto :error
-        cmake --build build --config Release --target=install
+        cmake --build build --config Release --target=install || goto :error
         :: ------ pkg ------
-        windeployqt --verbose=2 --no-quick-import --no-translations --no-opengl-sw --no-system-d3d-compiler --no-system-dxc-compiler --multimedia --skip-plugin-types tls,networkinformation build\bin\pmusic.exe
+        windeployqt --verbose=2 --no-quick-import --no-translations --no-opengl-sw --no-system-d3d-compiler --no-system-dxc-compiler --multimedia --core5compat --skip-plugin-types tls,networkinformation build\bin\pmusic.exe
         robocopy ./dependencies_bin/bin build/bin *.dll
         if ErrorLevel 8 (exit /B 1)
         copy LICENSE build/bin/

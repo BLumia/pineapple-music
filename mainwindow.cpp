@@ -616,11 +616,15 @@ void MainWindow::on_actionHelp_triggered()
         "\n\n" %
         tr("Based on the following free software libraries:") %
         "\n\n" %
-        QStringLiteral("- [Qt](https://www.qt.io/) %1\n").arg(QT_VERSION_STR) %
+        QStringLiteral("- [Qt](https://www.qt.io/) %1 with the following module(s):\n").arg(QT_VERSION_STR) %
+        QStringLiteral("  - multimedia\n") %
+#ifdef USE_QTEXTCODEC
+        QStringLiteral("  - core5compat\n") %
+#endif
 #ifndef NO_TAGLIB
         QStringLiteral("- [TagLib](https://github.com/taglib/taglib)\n") %
 #endif // NO_TAGLIB
-#ifndef NO_KCODECS
+#ifdef HAVE_KCODECS
         QStringLiteral("- [KCodecs](https://invent.kde.org/frameworks/kcodecs)\n") %
 #endif // NO_TAGLIB
         "\n"

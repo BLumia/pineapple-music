@@ -9,10 +9,14 @@
 #include <QRegularExpression>
 #include <QStringConverter>
 
-#ifndef NO_KCODECS
+#ifdef HAVE_KCODECS
 #include <KCharsets>
 #include <KCodecs>
 #include <KEncodingProber>
+#endif
+
+#ifdef USE_QTEXTCODEC
+#include <QTextCodec>
 #endif
 
 Q_LOGGING_CATEGORY(lcLyrics, "pmusic.lyrics")
@@ -46,13 +50,24 @@ bool LyricsManager::loadLyrics(QString filepath)
         return false;
     }
     QByteArray fileContent(file.readAll());
-#ifndef NO_KCODECS
+    QStringList lines;
+#ifdef HAVE_KCODECS
     KEncodingProber prober(KEncodingProber::Universal);
     prober.feed(fileContent);
     QByteArray encoding(prober.encoding());
     qCDebug(lcLyrics) << "Detected encoding:" << QString(encoding) << "with confidence" << prober.confidence();
+#ifdef USE_QTEXTCODEC
+    qCDebug(lcLyrics) << "QTextCodec is used instead of QStringConverter.";
+    QTextCodec *codec = QTextCodec::codecForName(encoding);
+    if (codec) {
+        lines = codec->toUnicode(fileContent).split('\n');
+    } else {
+        lines = QString(fileContent).split('\n');
+        qCDebug(lcLyrics) << "No codec for the detected encoding. Available codecs are:" << QTextCodec::availableCodecs();
+        qCDebug(lcLyrics) << "KCodecs offers these encodings:" << KCharsets::charsets()->availableEncodingNames();
+    }
+#else // NOT USE_QTEXTCODEC
     auto toUtf16 = QStringDecoder(encoding);
-    QStringList lines;
     // Don't use `QStringConverter::availableCodecs().contains(QString(encoding))` here, since the charset
     // encoding name might not match, e.g. GB18030 (from availableCodecs) != gb18030 (from KEncodingProber)
     if (toUtf16.isValid()) {
@@ -63,9 +78,10 @@ bool LyricsManager::loadLyrics(QString filepath)
         qCDebug(lcLyrics) << "KCodecs offers these encodings:" << KCharsets::charsets()->availableEncodingNames();
         lines = QString(fileContent).split('\n');
     }
-#else
-    QStringList lines = QString(fileContent).split('\n');
-#endif
+#endif // USE_QTEXTCODEC
+#else // NOT HAVE_KCODECS
+    lines = QString(fileContent).split('\n');
+#endif // HAVE_KCODECS
     file.close();
 
     // parse lyrics timestamp
