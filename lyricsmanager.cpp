@@ -50,9 +50,11 @@ bool LyricsManager::loadLyrics(QString filepath)
     uchardet_data_end(handle);
     const char* encoding = uchardet_get_charset(handle);
     qCDebug(lcLyrics) << "Detected encoding:" << (encoding == NULL ? "unknown" : encoding);
+    auto toUtf16 = QStringDecoder(encoding);
     QStringList lines;
-    if (QStringConverter::availableCodecs().contains(QString(encoding))) {
-        auto toUtf16 = QStringDecoder(encoding);
+    // Don't use `QStringConverter::availableCodecs().contains(QString(encoding))` here, since the charset
+    // encoding name might not match, e.g. GB18030 (from availableCodecs) != gb18030 (from KEncodingProber)
+    if (toUtf16.isValid()) {
         QString decodedResult = toUtf16(fileContent);
         lines = decodedResult.split('\n');
     } else {
