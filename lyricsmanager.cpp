@@ -9,8 +9,10 @@
 #include <QRegularExpression>
 #include <QStringConverter>
 
-#ifndef NO_UCHARDET
-#include <uchardet/uchardet.h>
+#ifndef NO_KCODECS
+#include <KCharsets>
+#include <KCodecs>
+#include <KEncodingProber>
 #endif
 
 Q_LOGGING_CATEGORY(lcLyrics, "pmusic.lyrics")
@@ -44,21 +46,23 @@ bool LyricsManager::loadLyrics(QString filepath)
         return false;
     }
     QByteArray fileContent(file.readAll());
-#ifndef NO_UCHARDET
-    uchardet_t handle = uchardet_new();
-    uchardet_handle_data(handle, fileContent.data(), fileContent.length());
-    uchardet_data_end(handle);
-    const char* encoding = uchardet_get_charset(handle);
-    qCDebug(lcLyrics) << "Detected encoding:" << (encoding == NULL ? "unknown" : encoding);
+#ifndef NO_KCODECS
+    KEncodingProber prober(KEncodingProber::Universal);
+    prober.feed(fileContent);
+    QByteArray encoding(prober.encoding());
+    qCDebug(lcLyrics) << "Detected encoding:" << QString(encoding) << "with confidence" << prober.confidence();
+    auto toUtf16 = QStringDecoder(encoding);
     QStringList lines;
-    if (QStringConverter::availableCodecs().contains(QString(encoding))) {
-        auto toUtf16 = QStringDecoder(encoding);
+    // Don't use `QStringConverter::availableCodecs().contains(QString(encoding))` here, since the charset
+    // encoding name might not match, e.g. GB18030 (from availableCodecs) != gb18030 (from KEncodingProber)
+    if (toUtf16.isValid()) {
         QString decodedResult = toUtf16(fileContent);
         lines = decodedResult.split('\n');
     } else {
+        qCDebug(lcLyrics) << "No codec for the detected encoding. Available codecs are:" << QStringConverter::availableCodecs();
+        qCDebug(lcLyrics) << "KCodecs offers these encodings:" << KCharsets::charsets()->availableEncodingNames();
         lines = QString(fileContent).split('\n');
     }
-    uchardet_delete(handle);
 #else
     QStringList lines = QString(fileContent).split('\n');
 #endif

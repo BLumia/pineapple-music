@@ -620,8 +620,8 @@ void MainWindow::on_actionHelp_triggered()
 #ifndef NO_TAGLIB
         QStringLiteral("- [TagLib](https://github.com/taglib/taglib)\n") %
 #endif // NO_TAGLIB
-#ifndef NO_UCHARDET
-        QStringLiteral("- [uchardet](https://www.freedesktop.org/wiki/Software/uchardet/)\n") %
+#ifndef NO_KCODECS
+        QStringLiteral("- [KCodecs](https://invent.kde.org/frameworks/kcodecs)\n") %
 #endif // NO_TAGLIB
         "\n"
         "[Source Code](https://github.com/BLumia/pineapple-music)\n"

@@ -15,7 +15,7 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(Qt6 6.6 COMPONENTS Widgets Multimedia Network LinguistTools REQUIRED)
-find_package(uchardet)
+find_package(KF6Codecs 6.1.0)
 find_package(PkgConfig)
 
 if (PKG_CONFIG_FOUND)
@@ -73,10 +73,10 @@ else ()
     target_link_libraries(${EXE_NAME} PRIVATE PkgConfig::TagLib)
 endif ()
 
-if (NOT uchardet_FOUND)
-    target_compile_definitions(${EXE_NAME} PRIVATE NO_UCHARDET=1)
+if (NOT TARGET KF6::Codecs)
+    target_compile_definitions(${EXE_NAME} PRIVATE NO_KCODECS=1)
 else ()
-    target_link_libraries (${EXE_NAME} PRIVATE uchardet::libuchardet)
+    target_link_libraries (${EXE_NAME} PRIVATE KF6::Codecs)
 endif ()
 
 target_link_libraries(${EXE_NAME} PRIVATE Qt::Widgets Qt::Multimedia Qt::Network)
