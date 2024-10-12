@@ -7,9 +7,11 @@ jobs:
   
     strategy:
       matrix:
-        vs: ['2022']
-        msvc_arch: ['x64']
-        qt_ver: ['6.7.3']
+        include:
+          - qt_ver: '6.8.0'
+            vs: '2022'
+            aqt_arch: 'win64_msvc2022_64'
+            msvc_arch: 'x64'
 
     runs-on: windows-2022
 
@@ -18,7 +20,7 @@ jobs:
     - name: Install Qt
       uses: jurplel/install-qt-action@v4
       with:
-        arch: 'win64_msvc2019_64'
+        arch: ${{ matrix.aqt_arch }}
         version: ${{ matrix.qt_ver }}
         modules: 'qtmultimedia qt5compat'
     - name: Build
@@ -62,5 +64,5 @@ jobs:
         exit /B 0
     - uses: actions/upload-artifact@v4
       with:
-        name: "windows-msvc${{ matrix.vs }}-qt${{ matrix.qt_ver }}-cmake-package"
+        name: "${{ matrix.aqt_arch }}-qt${{ matrix.qt_ver }}-cmake-package"
         path: build/bin/*
