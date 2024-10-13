@@ -2,12 +2,23 @@
 
 Since **I** just need a simple player which *just works* right now, so I did many things in a dirty way. Don't feel so weird if you saw something I did in this project is using a bad approach.
 
-### Feature Notice
+### Features
+
+We have the following features:
+
+- [Sidecar](https://en.wikipedia.org/wiki/Sidecar_file) lyrics file (`.lrc`) support with an optional desktop lyrics bar widget
+- Auto-load all audio files in the same folder of the file that you attempted to play, into a playlist
+
+But these features are not available, some of them are TBD and others are not planned:
 
 - File format support will be limited by the [FFmpeg version that Qt 6 uses](https://doc.qt.io/qt-6/qtmultimedia-attribution-ffmpeg.html).
   - ...which if you use Qt's official binary, only contains the LGPLv2.1+ part. (already good enough, tho)
 - No music library management support and there won't be one!
   - It'll auto-load music files in the same folder of the file that you attempted to play, so organize your music files on a folder-basis.
+- Limited system integration:
+  - No [SMTC](https://learn.microsoft.com/en-us/uwp/api/windows.media.systemmediatransportcontrols) support under Windows for now
+  - No [MPRIS](https://www.freedesktop.org/wiki/Specifications/mpris-spec/) support under Linux desktop for now
+  - No "playback progress on taskbar icon" and "taskbar thumbnail buttons" support whatever on Windows or Linux desktop for now
 - Limited lyrics (`.lrc`) loading support:
   - Currently no `.tlrc` (for translated lyrics) or `.rlrc` (for romanized lyrics) support.
   - Multi-line lyrics and duplicated timestamps are not supported
@@ -20,7 +31,7 @@ Current state, we need:
  - `cmake` as the build system.
  - `qt6` with `qt6-multimedia` since we use it for playback.
  - `taglib` to get the audio file properties.
- - `pkg-config` to find the installed taglib.
+ - `kissfft` for FFT support (will be downloaded at configure-time by `cmake`).
 
 Then we can build it with any proper c++ compiler like g++ or msvc.
 

@@ -4,6 +4,7 @@ project(pineapple-music LANGUAGES CXX)
 
 include (GNUInstallDirs)
 include (FeatureSummary)
+include (FetchContent)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
@@ -20,6 +21,17 @@ find_package(Qt6 6.6 COMPONENTS Widgets Multimedia Network LinguistTools REQUIRE
 find_package(TagLib 2.0.0)
 find_package(KF6Codecs 6.1.0)
 
+FetchContent_Declare(
+    kissfft
+    GIT_REPOSITORY https://github.com/mborgerding/kissfft.git
+    GIT_TAG f5f2a3b2f2cd02bf80639adb12cbeed125bdf420
+)
+set(KISSFFT_PKGCONFIG OFF CACHE BOOL "dep(kissfft): pkgconfig support")
+set(KISSFFT_STATIC ON CACHE BOOL "dep(kissfft): static linking")
+set(KISSFFT_TEST OFF CACHE BOOL "dep(kissfft): enable testing")
+set(KISSFFT_TOOLS OFF CACHE BOOL "dep(kissfft): build tools")
+FetchContent_MakeAvailable(kissfft)
+
 if (USE_QTEXTCODEC)
     find_package(Qt6 6.6 COMPONENTS Core5Compat REQUIRED)
 endif()
@@ -32,6 +44,7 @@ set (PMUSIC_CPP_FILES
     singleapplicationmanager.cpp
     lrcbar.cpp
     lyricsmanager.cpp
+    fftspectrum.cpp
 )
 
 set (PMUSIC_HEADER_FILES
@@ -41,6 +54,7 @@ set (PMUSIC_HEADER_FILES
     singleapplicationmanager.h
     lrcbar.h
     lyricsmanager.h
+    fftspectrum.h
 )
 
 set (PMUSIC_UI_FILES
@@ -80,7 +94,7 @@ if (TARGET KF6::Codecs)
     target_link_libraries (${EXE_NAME} PRIVATE KF6::Codecs)
 endif ()
 
-target_link_libraries(${EXE_NAME} PRIVATE Qt::Widgets Qt::Multimedia Qt::Network)
+target_link_libraries(${EXE_NAME} PRIVATE Qt::Widgets Qt::Multimedia Qt::Network kissfft::kissfft)
 
 if (USE_QTEXTCODEC)
     target_compile_definitions(${EXE_NAME} PRIVATE USE_QTEXTCODEC=1)

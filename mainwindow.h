@@ -17,6 +17,7 @@ class QAudioOutput;
 class QPropertyAnimation;
 QT_END_NAMESPACE
 
+class FFTSpectrum;
 class LrcBar;
 class PlaylistManager;
 class MainWindow : public QMainWindow
@@ -92,6 +93,7 @@ private:
     QMediaDevices *m_mediaDevices;
     QMediaPlayer *m_mediaPlayer;
     QAudioOutput *m_audioOutput;
+    FFTSpectrum* m_fftSpectrum;
     LrcBar *m_lrcbar;
     QPropertyAnimation *m_fadeOutAnimation;
     PlaylistManager *m_playlistManager;

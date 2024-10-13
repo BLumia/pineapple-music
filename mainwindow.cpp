@@ -6,6 +6,7 @@
 #include "./ui_mainwindow.h"
 
 #include "playlistmanager.h"
+#include "fftspectrum.h"
 #include "lrcbar.h"
 
 // taglib
@@ -41,6 +42,7 @@ MainWindow::MainWindow(QWidget *parent)
     , m_mediaDevices(new QMediaDevices(this))
     , m_mediaPlayer(new QMediaPlayer(this))
     , m_audioOutput(new QAudioOutput(this))
+    , m_fftSpectrum(new FFTSpectrum(this))
     , m_lrcbar(new LrcBar(nullptr))
     , m_playlistManager(new PlaylistManager(this))
 {
@@ -48,6 +50,7 @@ MainWindow::MainWindow(QWidget *parent)
     m_playlistManager->setAutoLoadFilterSuffixes({
         "*.mp3", "*.wav", "*.aiff", "*.ape", "*.flac", "*.ogg", "*.oga", "*.mpga", "*.aac", "*.tta"
     });
+    m_fftSpectrum->setMediaPlayer(m_mediaPlayer);
     m_mediaPlayer->setAudioOutput(m_audioOutput);
     m_mediaPlayer->setLoops(QMediaPlayer::Infinite);
     ui->playlistView->setModel(m_playlistManager->model());
