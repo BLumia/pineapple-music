@@ -46,7 +46,7 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
     m_playlistManager->setAutoLoadFilterSuffixes({
-        "*.mp3", "*.wav", "*.aiff", "*.ape", "*.flac", "*.ogg", "*.oga", "*.mpga", "*.aac"
+        "*.mp3", "*.wav", "*.aiff", "*.ape", "*.flac", "*.ogg", "*.oga", "*.mpga", "*.aac", "*.tta"
     });
     m_mediaPlayer->setAudioOutput(m_audioOutput);
     m_mediaPlayer->setLoops(QMediaPlayer::Infinite);
@@ -438,6 +438,8 @@ void MainWindow::initConnections()
         setAudioMetadataForDisplay(metadata.stringValue(QMediaMetaData::Title),
                                    metadata.stringValue(QMediaMetaData::Author),
                                    metadata.stringValue(QMediaMetaData::AlbumTitle));
+        setAudioPropertyInfoForDisplay(-1, metadata.value(QMediaMetaData::AudioBitRate).toInt() / 1000,
+                                       -1, metadata.stringValue(QMediaMetaData::FileFormat));
 #endif // NO_TAGLIB
         QVariant coverArt(metadata.value(QMediaMetaData::ThumbnailImage));
         if (!coverArt.isNull()) {
