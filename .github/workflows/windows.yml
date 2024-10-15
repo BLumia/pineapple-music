@@ -45,9 +45,6 @@ jobs:
         git clone -q https://invent.kde.org/frameworks/kcodecs.git dependencies_src/kcodecs
         cmake .\dependencies_src\kcodecs -Bbuild_dependencies/kcodecs -DCMAKE_INSTALL_PREFIX="dependencies_bin" -DBUILD_TESTING=OFF || goto :error
         cmake --build build_dependencies/kcodecs --config Release --target=install || goto :error
-        :: ===== pkg-config =====
-        choco install pkgconfiglite
-        set PKG_CONFIG_PATH=%PWD%/dependencies_bin/lib/pkgconfig
         :: ===== taglib =====
         git clone --recurse-submodules -q https://github.com/taglib/taglib.git dependencies_src/taglib
         cmake .\dependencies_src\taglib -Bbuild_dependencies/taglib -DBUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX="dependencies_bin" || goto :error

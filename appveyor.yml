@@ -3,7 +3,6 @@ image:
 environment:
   CMAKE_INSTALL_ROOT: C:\projects\cmake
   PACKAGE_INSTALL_ROOT: C:\projects\pir
-  PKG_CONFIG_PATH: C:\projects\pir\lib\pkgconfig
   matrix:
     - build_name: mingw1120_64_qt6_7
       QTPATH: C:\Qt\6.7\mingw_64
@@ -23,7 +22,6 @@ build_script:
   - mkdir 3rdparty
   - choco install ninja
   - choco install gperf
-  - choco install pkgconfiglite
   - cd 3rdparty
 # install ECM
   - git clone -q https://invent.kde.org/frameworks/extra-cmake-modules.git

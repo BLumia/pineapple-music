@@ -17,16 +17,12 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 option(USE_QTEXTCODEC "Use QTextCodec instead of QStringConverter, in case Qt is not built with ICU" OFF)
 
 find_package(Qt6 6.6 COMPONENTS Widgets Multimedia Network LinguistTools REQUIRED)
+find_package(TagLib 2.0.0)
 find_package(KF6Codecs 6.1.0)
-find_package(PkgConfig)
 
 if (USE_QTEXTCODEC)
     find_package(Qt6 6.6 COMPONENTS Core5Compat REQUIRED)
 endif()
-
-if (PKG_CONFIG_FOUND)
-pkg_check_modules(TagLib taglib IMPORTED_TARGET)
-endif ()
 
 set (PMUSIC_CPP_FILES
     main.cpp
@@ -76,7 +72,7 @@ endif ()
 if (NOT TagLib_FOUND)
     target_compile_definitions(${EXE_NAME} PRIVATE NO_TAGLIB=1)
 else ()
-    target_link_libraries(${EXE_NAME} PRIVATE PkgConfig::TagLib)
+    target_link_libraries(${EXE_NAME} PRIVATE TagLib::tag)
 endif ()
 
 if (TARGET KF6::Codecs)
