@@ -72,6 +72,7 @@ QSlider::add-page:vertical {
 /****** PushButton ******/
 
 QPushButton {
+	color: white;
 	border: 0px solid grey;
 	background-color: transparent;
 }
@@ -106,6 +107,7 @@ QLabel#coverLabel {
 /****** ListView ******/
 
 QListView {
+	color: white;
 	background: rgba(0, 0, 0, 50);
 }</string>
   </property>
@@ -659,10 +661,27 @@ QListView {
   </widget>
   <action name="actionHelp">
    <property name="text">
-    <string>help</string>
+    <string>Help</string>
+   </property>
+   <property name="toolTip">
+    <string>Help</string>
    </property>
    <property name="shortcut">
     <string>F1</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionOpen">
+   <property name="icon">
+    <iconset theme="document-open"/>
+   </property>
+   <property name="text">
+    <string>Open</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+O</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>

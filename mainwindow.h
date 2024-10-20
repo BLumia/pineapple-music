@@ -76,6 +76,7 @@ private slots:
     void on_playListBtn_clicked();
     void on_playlistView_activated(const QModelIndex &index);
     void on_lrcBtn_clicked();
+    void on_actionOpen_triggered();
     void on_actionHelp_triggered();
 
 signals:
@@ -101,6 +102,8 @@ private:
     void initUiAndAnimation();
     void initConnections();
 
+    void loadConfig();
+    void saveConfig();
     void loadSkinData();
     void saveSkinData();
 

@@ -32,6 +32,7 @@
 #include <QAudioDevice>
 #include <QMessageBox>
 #include <QStringBuilder>
+#include <QSettings>
 
 constexpr QSize miniSize(490, 160);
 constexpr QSize fullSize(490, 420);
@@ -57,10 +58,13 @@ MainWindow::MainWindow(QWidget *parent)
 
     ui->actionHelp->setShortcut(QKeySequence::HelpContents);
     addAction(ui->actionHelp);
+    ui->actionOpen->setShortcut(QKeySequence::Open);
+    addAction(ui->actionOpen);
 
     setWindowFlags(Qt::FramelessWindowHint | Qt::WindowSystemMenuHint | Qt::WindowMinimizeButtonHint);
     setAttribute(Qt::WA_TranslucentBackground, true);
 
+    loadConfig();
     loadSkinData();
     initConnections();
     initUiAndAnimation();
@@ -70,6 +74,7 @@ MainWindow::MainWindow(QWidget *parent)
 
 MainWindow::~MainWindow()
 {
+    saveConfig();
     delete m_lrcbar;
     delete ui;
 }
@@ -531,9 +536,27 @@ void MainWindow::initConnections()
    });
 }
 
+void MainWindow::loadConfig()
+{
+    QDir configDir(QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation));
+    QSettings settings(configDir.filePath("settings.ini"), QSettings::IniFormat);
+    ui->volumeSlider->setValue(settings.value("volume", 100).toInt());
+}
+
+void MainWindow::saveConfig()
+{
+    QDir configDir(QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation));
+    if (!configDir.exists()) {
+        configDir.mkpath(".");
+    }
+    QSettings settings(configDir.filePath("settings.ini"), QSettings::IniFormat);
+    settings.setValue("volume", ui->volumeSlider->value());
+}
+
 void MainWindow::loadSkinData()
 {
-    QFile file(QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation) + "/skin.dat");
+    QDir configDir(QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation));
+    QFile file(configDir.filePath("skin.dat"));
     bool canOpen = file.open(QIODevice::ReadOnly);
     if (!canOpen) return;
     QDataStream stream(&file);
@@ -609,6 +632,10 @@ void MainWindow::on_lrcBtn_clicked()
     }
 }
 
+void MainWindow::on_actionOpen_triggered()
+{
+    loadFile();
+}
 
 void MainWindow::on_actionHelp_triggered()
 {
