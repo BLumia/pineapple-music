@@ -25,6 +25,8 @@ public:
     QString lyrics(int lineOffset = 0) const;
     double maskPercent(int curTimeMs);
 
+    static int parseTimeToMilliseconds(const QString& timeString);
+
 protected:
 
 

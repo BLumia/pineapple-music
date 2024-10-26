@@ -112,8 +112,7 @@ bool LyricsManager::loadLyrics(QString filepath)
         QRegularExpressionMatch match = lrcRegex.match(line);
         while (match.hasMatch()) {
             tagSectionPassed = true;
-            QTime timestamp(QTime::fromString(match.captured(1), "m:s.zz"));
-            timestamps.append(timestamp.msecsSinceStartOfDay());
+            timestamps.append(parseTimeToMilliseconds(match.captured(1)));
             currentLrc = match.captured(2);
             match = lrcRegex.match(currentLrc);
         }
@@ -175,6 +174,23 @@ double LyricsManager::maskPercent(int curTimeMs)
     if (m_nextLyricsTime == currentLyricsTime()) return 1;
 
     return (double)(curTimeMs - currentLyricsTime()) / (m_nextLyricsTime - m_currentLyricsTime);
+}
+
+int LyricsManager::parseTimeToMilliseconds(const QString &timeString)
+{
+    QRegularExpression timeRegex(R"((\d{2,3}):(\d{2})\.(\d{2,3}))");
+    QRegularExpressionMatch match = timeRegex.match(timeString);
+
+    if (match.hasMatch()) {
+        int minutes = match.captured(1).toInt();
+        int seconds = match.captured(2).toInt();
+        int milliseconds = match.captured(3).toInt();
+
+        return minutes * 60000 + seconds * 1000 + milliseconds;
+    } else {
+        qCWarning(lcLyricsParser) << "Invalid time format:" << timeString;
+        return -1;
+    }
 }
 
 void LyricsManager::reset()
