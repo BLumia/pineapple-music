@@ -26,6 +26,7 @@ FFTSpectrum::FFTSpectrum(QWidget* parent)
     });
 
     connect(m_audioBufferOutput, &QAudioBufferOutput::audioBufferReceived, this, [=](const QAudioBuffer& buffer) {
+        if (!isVisible()) return;
         const QAudioFormat& fmt = buffer.format();
         const QAudioFormat::SampleFormat sampleFormat = fmt.sampleFormat();
         QAudioFormat::ChannelConfig channelConfig = fmt.channelConfig();
@@ -112,10 +113,11 @@ void FFTSpectrum::paintEvent(QPaintEvent* e)
     if (!m_freq.empty()) {
         int width = this->width();
         int height = this->height();
-        int barWidth = std::max(1ULL, width / m_freq.size());
+        int barWidth = std::max(1, (int)(width / m_freq.size()));
         for (int i = 0; i < m_freq.size(); i++) {
             int barHeight = static_cast<int>(sqrt(m_freq[i]) * height * 0.5);
-            painter.fillRect(i * barWidth, height - barHeight, barWidth, barHeight, QColor(70, 130, 180, (int)(140 * m_freq[i]) + 90));
+            QColor color(70, 130, 180, std::min(255, (int)(140 * m_freq[i]) + 90));
+            painter.fillRect(i * barWidth, height - barHeight, barWidth, barHeight, color);
         }
     }
 }
