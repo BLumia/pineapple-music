@@ -33,6 +33,7 @@
 #include <QMessageBox>
 #include <QStringBuilder>
 #include <QSettings>
+#include <QGraphicsDropShadowEffect>
 
 constexpr QSize miniSize(490, 160);
 constexpr QSize fullSize(490, 420);
@@ -60,6 +61,11 @@ MainWindow::MainWindow(QWidget *parent)
     addAction(ui->actionHelp);
     ui->actionOpen->setShortcut(QKeySequence::Open);
     addAction(ui->actionOpen);
+
+    ui->titleLabel->setGraphicsEffect(createLabelShadowEffect());
+    ui->propLabel->setGraphicsEffect(createLabelShadowEffect());
+    ui->nowTimeLabel->setGraphicsEffect(createLabelShadowEffect());
+    ui->totalTimeLabel->setGraphicsEffect(createLabelShadowEffect());
 
     setWindowFlags(Qt::FramelessWindowHint | Qt::WindowSystemMenuHint | Qt::WindowMinimizeButtonHint);
     setAttribute(Qt::WA_TranslucentBackground, true);
@@ -666,5 +672,14 @@ void MainWindow::on_actionHelp_triggered()
         );
     infoBox.setTextFormat(Qt::MarkdownText);
     infoBox.exec();
+}
+
+QGraphicsDropShadowEffect *MainWindow::createLabelShadowEffect()
+{
+    QGraphicsDropShadowEffect * effect = new QGraphicsDropShadowEffect(this);
+    effect->setBlurRadius(3);
+    effect->setColor(QColor(0, 0, 0, 180));
+    effect->setOffset(1, 1);
+    return effect;
 }
 

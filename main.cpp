@@ -21,7 +21,6 @@ int main(int argc, char *argv[])
     if (translator.load(QLocale(), QLatin1String("pineapple-music"), QLatin1String("_"), QLatin1String(":/i18n"))) {
         a.installTranslator(&translator);
     }
-    a.installTranslator(&translator);
 
     // parse commandline arguments
     QCommandLineParser parser;

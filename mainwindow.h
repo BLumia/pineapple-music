@@ -15,6 +15,7 @@ class QMediaDevices;
 class QMediaPlayer;
 class QAudioOutput;
 class QPropertyAnimation;
+class QGraphicsDropShadowEffect;
 QT_END_NAMESPACE
 
 class FFTSpectrum;
@@ -83,6 +84,8 @@ signals:
     void playbackModeChanged(enum PlaybackMode mode);
 
 private:
+    QGraphicsDropShadowEffect * createLabelShadowEffect();
+
     bool m_clickedOnWindow = false;
     bool m_playbackSliderPressed = false;
     QLinearGradient m_bgLinearGradient;
