@@ -6,3 +6,6 @@
 
 # User config file
 CMakeLists.txt.user*
+
+# Why, macOS, why?
+.DS_Store
