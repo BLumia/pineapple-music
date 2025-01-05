@@ -5,8 +5,8 @@ environment:
   PACKAGE_INSTALL_ROOT: C:\projects\pir
   matrix:
     - build_name: mingw1120_64_qt6_7
-      QTPATH: C:\Qt\6.7\mingw_64
-      MINGW64: C:\Qt\Tools\mingw1120_64
+      QTPATH: C:\Qt\6.8\mingw_64
+      MINGW64: C:\Qt\Tools\mingw1310_64
 
 install:
   - mkdir %CMAKE_INSTALL_ROOT%
