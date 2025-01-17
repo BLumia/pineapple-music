@@ -68,7 +68,6 @@ private slots:
     void on_playBtn_clicked();
     void on_volumeSlider_valueChanged(int value);
     void on_stopBtn_clicked();
-    void on_playbackSlider_valueChanged(int value);
     void on_prevBtn_clicked();
     void on_nextBtn_clicked();
     void on_volumeBtn_clicked();

@@ -45,6 +45,7 @@ set (PMUSIC_CPP_FILES
     lrcbar.cpp
     lyricsmanager.cpp
     fftspectrum.cpp
+    playbackprogressindicator.cpp
 )
 
 set (PMUSIC_HEADER_FILES
@@ -55,6 +56,7 @@ set (PMUSIC_HEADER_FILES
     lrcbar.h
     lyricsmanager.h
     fftspectrum.h
+    playbackprogressindicator.h
 )
 
 set (PMUSIC_UI_FILES

@@ -359,14 +359,6 @@ void MainWindow::on_stopBtn_clicked()
     m_mediaPlayer->stop();
 }
 
-void MainWindow::on_playbackSlider_valueChanged(int value)
-{
-    qint64 currPos = m_mediaPlayer->duration() == 0 ? value : m_mediaPlayer->position() * ui->playbackSlider->maximum() / m_mediaPlayer->duration();
-    if (qAbs(currPos - value) > 2) {
-        m_mediaPlayer->setPosition(ui->playbackSlider->value() * 1.0 / ui->playbackSlider->maximum() * m_mediaPlayer->duration());
-    }
-}
-
 void MainWindow::on_prevBtn_clicked()
 {
     QModelIndex index(m_playlistManager->previousIndex());
@@ -412,6 +404,10 @@ void MainWindow::initConnections()
 {
     connect(m_mediaDevices, &QMediaDevices::audioOutputsChanged, this, [=]{
         m_audioOutput->setDevice(m_mediaDevices->defaultAudioOutput());
+    });
+
+    connect(ui->playbackProgressIndicator, &PlaybackProgressIndicator::seekingRequested, this, [=](qint64 pos){
+        m_mediaPlayer->setPosition(pos);
     });
 
     connect(m_mediaPlayer, &QMediaPlayer::sourceChanged, this, [=](){
@@ -470,7 +466,7 @@ void MainWindow::initConnections()
     connect(m_mediaPlayer, &QMediaPlayer::positionChanged, this, [=](qint64 pos) {
         ui->nowTimeLabel->setText(ms2str(pos));
         if (m_mediaPlayer->duration() != 0) {
-            ui->playbackSlider->setSliderPosition(ui->playbackSlider->maximum() * pos / m_mediaPlayer->duration());
+            ui->playbackProgressIndicator->setPosition(pos);
         }
         m_lrcbar->playbackPositionChanged(pos, m_mediaPlayer->duration());
     });
@@ -484,6 +480,7 @@ void MainWindow::initConnections()
     });
 
     connect(m_mediaPlayer, &QMediaPlayer::durationChanged, this, [=](qint64 dua) {
+        ui->playbackProgressIndicator->setDuration(dua);
         ui->totalTimeLabel->setText(ms2str(dua));
     });
 
