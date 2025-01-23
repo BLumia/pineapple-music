@@ -242,6 +242,12 @@ void MainWindow::dropEvent(QDropEvent *e)
         return;
     }
 
+    if (fileName.endsWith(".chp") || fileName.endsWith(".pbf")) {
+        QList<std::pair<qint64, QString>> chapters(PlaybackProgressIndicator::tryLoadSidecarChapterFile(fileName));
+        ui->playbackProgressIndicator->setChapters(chapters);
+        return;
+    }
+
     const QModelIndex & modelIndex = m_playlistManager->loadPlaylist(urls);
     if (modelIndex.isValid()) {
         loadByModelIndex(modelIndex);
@@ -264,14 +270,21 @@ void MainWindow::loadFile()
     }
 
     m_playlistManager->loadPlaylist(urlList);
-    m_mediaPlayer->setSource(urlList.first());
-    m_lrcbar->loadLyrics(urlList.first().toLocalFile());
+    const QUrl & firstUrl = urlList.first();
+    const QString firstFilePath = firstUrl.toLocalFile();
+    m_mediaPlayer->setSource(firstUrl);
+    m_lrcbar->loadLyrics(firstFilePath);
+    QList<std::pair<qint64, QString>> chapters(PlaybackProgressIndicator::tryLoadSidecarChapterFile(firstFilePath));
+    ui->playbackProgressIndicator->setChapters(chapters);
 }
 
 void MainWindow::loadByModelIndex(const QModelIndex & index)
 {
     m_mediaPlayer->setSource(m_playlistManager->urlByIndex(index));
-    m_lrcbar->loadLyrics(m_playlistManager->localFileByIndex(index));
+    QString filePath(m_playlistManager->localFileByIndex(index));
+    m_lrcbar->loadLyrics(filePath);
+    QList<std::pair<qint64, QString>> chapters(PlaybackProgressIndicator::tryLoadSidecarChapterFile(filePath));
+    ui->playbackProgressIndicator->setChapters(chapters);
 }
 
 void MainWindow::play()

@@ -4,8 +4,12 @@
 
 #include "playbackprogressindicator.h"
 
+#include <QDir>
+#include <QFile>
+#include <QFileInfo>
 #include <QPainter>
 #include <QPainterPath>
+#include <QRegularExpression>
 
 PlaybackProgressIndicator::PlaybackProgressIndicator(QWidget *parent) :
     QWidget(parent)
@@ -33,6 +37,91 @@ void PlaybackProgressIndicator::setChapters(QList<std::pair<qint64, QString> > c
         m_chapterModel.appendRow(chapterItem);
     }
     update();
+}
+
+QList<std::pair<qint64, QString> > PlaybackProgressIndicator::tryLoadSidecarChapterFile(const QString &filePath)
+{
+    if (filePath.endsWith(".chp", Qt::CaseInsensitive)) {
+        return parseCHPChapterFile(filePath);
+    } else if (filePath.endsWith(".pbf", Qt::CaseInsensitive)) {
+        return parsePBFChapterFile(filePath);
+    }
+
+    QFileInfo fileInfo(filePath);
+    fileInfo.setFile(fileInfo.dir().filePath(fileInfo.completeBaseName() + ".chp"));
+    if (fileInfo.exists()) {
+        return parseCHPChapterFile(fileInfo.absoluteFilePath());
+    }
+    fileInfo.setFile(fileInfo.dir().filePath(fileInfo.completeBaseName() + ".pbf"));
+    if (fileInfo.exists()) {
+        return parsePBFChapterFile(fileInfo.absoluteFilePath());
+    }
+    fileInfo.setFile(filePath + ".chp");
+    if (fileInfo.exists()) {
+        return parseCHPChapterFile(fileInfo.absoluteFilePath());
+    }
+    return {};
+}
+
+QList<std::pair<qint64, QString> > PlaybackProgressIndicator::parseCHPChapterFile(const QString &filePath)
+{
+    QList<std::pair<qint64, QString>> chapters;
+    QFile file(filePath);
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        return chapters;
+    }
+
+    QTextStream in(&file);
+    QRegularExpression timeRegex(R"((\d{1,2}):(\d{2})(?::(\d{2}))?(?:\.(\d{1,3}))?)");
+
+    while (!in.atEnd()) {
+        QString line = in.readLine().trimmed();
+        QRegularExpressionMatch match = timeRegex.match(line);
+        if (match.hasMatch()) {
+            int hours = match.capturedView(3).isEmpty() ? 0 : match.capturedView(1).toInt();
+            int minutes = match.capturedView(3).isEmpty() ? match.capturedView(1).toInt() : match.capturedView(2).toInt();
+            int seconds = match.capturedView(3).isEmpty() ? match.capturedView(2).toInt() : match.capturedView(3).toInt();
+            int milliseconds = 0;
+
+            QStringView millisecondsStr(match.capturedView(4));
+            if (!millisecondsStr.isEmpty()) {
+                milliseconds = millisecondsStr.toInt() * pow(10, 3 - millisecondsStr.length());
+            }
+
+            qint64 totalMilliseconds = (hours * 3600 + minutes * 60 + seconds) * 1000 + milliseconds;
+
+            QString chapterTitle = line.mid(match.capturedLength()).trimmed();
+            chapters.append(std::make_pair(totalMilliseconds, chapterTitle));
+        }
+    }
+
+    file.close();
+    return chapters;
+}
+
+QList<std::pair<qint64, QString> > PlaybackProgressIndicator::parsePBFChapterFile(const QString &filePath)
+{
+    QList<std::pair<qint64, QString>> chapters;
+    QFile file(filePath);
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        return chapters;
+    }
+
+    QTextStream in(&file);
+    QRegularExpression chapterRegex(R"(^\d+=(\d+)\*([^*]*)\*.*$)");
+
+    while (!in.atEnd()) {
+        QString line = in.readLine().trimmed();
+        QRegularExpressionMatch match = chapterRegex.match(line);
+        if (match.hasMatch()) {
+            qint64 timestamp = match.captured(1).toLongLong();
+            QString title = match.captured(2).trimmed();
+            chapters.append(std::make_pair(timestamp, title));
+        }
+    }
+
+    file.close();
+    return chapters;
 }
 
 void PlaybackProgressIndicator::paintEvent(QPaintEvent *event)
@@ -66,6 +155,7 @@ void PlaybackProgressIndicator::paintEvent(QPaintEvent *event)
         painter.setPen(Qt::lightGray);
         for (int i = 0; i < m_chapterModel.rowCount(); i++) {
             qint64 chapterStartTime = m_chapterModel.item(i)->data(StartTimeMsRole).toInt();
+            if (chapterStartTime == 0) continue;
             if (chapterStartTime > m_duration) break;
             float chapterPercent = chapterStartTime / (float)m_duration;
             float chapterPosX = width() * chapterPercent;

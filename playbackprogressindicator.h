@@ -28,6 +28,10 @@ public:
     void setDuration(qint64 dur);
     void setChapters(QList<std::pair<qint64, QString>> chapters);
 
+    static QList<std::pair<qint64, QString>> tryLoadSidecarChapterFile(const QString & filePath);
+    static QList<std::pair<qint64, QString>> parseCHPChapterFile(const QString & filePath);
+    static QList<std::pair<qint64, QString>> parsePBFChapterFile(const QString & filePath);
+
 signals:
     void seekOnMoveChanged(bool sow);
     void positionChanged(qint64 newPosition);

@@ -7,9 +7,12 @@ Since **I** just need a simple player which *just works* right now, so I did man
 We have the following features:
 
 - [Sidecar](https://en.wikipedia.org/wiki/Sidecar_file) lyrics file (`.lrc`) support with an optional desktop lyrics bar widget
+- Sidecar chapter file support
+  - [YouTube-style chapter](https://support.google.com/youtube/answer/9884579) saved to a plain text file with `.chp` suffix
+  - PotPlayer `.pbf` file, `[Bookmark]`s as chapters
 - Auto-load all audio files in the same folder of the file that you attempted to play, into a playlist
 
-But these features are not available, some of them are TBD and others are not planned:
+These features are not available, some of them are TBD and others are not planned:
 
 - File format support will be limited by the [FFmpeg version that Qt 6 uses](https://doc.qt.io/qt-6/qtmultimedia-attribution-ffmpeg.html).
   - ...which if you use Qt's official binary, only contains the LGPLv2.1+ part. (already good enough, tho)
