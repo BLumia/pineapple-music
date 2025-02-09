@@ -678,7 +678,7 @@ void MainWindow::on_actionHelp_triggered()
         "\n"
         "[Source Code](https://github.com/BLumia/pineapple-music)\n"
         "\n"
-        "Copyright &copy; 2024 [BLumia](https://github.com/BLumia/)"
+        "Copyright &copy; 2025 [BLumia](https://github.com/BLumia/)"
         );
     infoBox.setTextFormat(Qt::MarkdownText);
     infoBox.exec();
