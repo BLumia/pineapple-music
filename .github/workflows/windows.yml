@@ -35,22 +35,26 @@ jobs:
         :: ------ dep ------
         set CMAKE_PREFIX_PATH=%PWD%/dependencies_bin
         mkdir dependencies_src
-        :: ===== ECM =====
+        echo ::group::===== ECM =====
         git clone -q https://invent.kde.org/frameworks/extra-cmake-modules.git dependencies_src/extra-cmake-modules
         cmake .\dependencies_src\extra-cmake-modules -Bbuild_dependencies/extra-cmake-modules -DCMAKE_INSTALL_PREFIX="dependencies_bin" -DBUILD_TESTING=OFF || goto :error
         cmake --build build_dependencies/extra-cmake-modules --config Release --target=install || goto :error
-        :: ===== Gperf (required by KCodecs) =====
+        echo ::endgroup::
+        echo ::group::===== Gperf (required by KCodecs) =====
         choco install gperf
-        :: ===== KCodecs =====
+        echo ::endgroup::
+        echo ::group::===== KCodecs =====
         git clone -q https://invent.kde.org/frameworks/kcodecs.git dependencies_src/kcodecs
         cmake .\dependencies_src\kcodecs -Bbuild_dependencies/kcodecs -DCMAKE_INSTALL_PREFIX="dependencies_bin" -DBUILD_TESTING=OFF || goto :error
         cmake --build build_dependencies/kcodecs --config Release --target=install || goto :error
-        :: ===== taglib =====
+        echo ::endgroup::
+        echo ::group::===== taglib =====
         git clone --recurse-submodules -q https://github.com/taglib/taglib.git dependencies_src/taglib
         cmake .\dependencies_src\taglib -Bbuild_dependencies/taglib -DBUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX="dependencies_bin" || goto :error
         cmake --build build_dependencies/taglib --config Release --target=install -j || goto :error
+        echo ::endgroup::
         :: ------ app ------
-        cmake -Bbuild . -DUSE_QTEXTCODEC=ON -DCMAKE_INSTALL_PREFIX="%PWD%\build\" || goto :error
+        cmake -Bbuild . -DUSE_QTEXTCODEC=ON -DCMAKE_INSTALL_PREFIX='%PWD%\build\' || goto :error
         cmake --build build --config Release -j || goto :error
         cmake --build build --config Release --target=install || goto :error
         :: ------ pkg ------
