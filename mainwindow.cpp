@@ -114,12 +114,12 @@ void MainWindow::setAudioPropertyInfoForDisplay(int sampleRate, int bitrate, int
         }
     };
 
-    if (sampleRate >= 0) {
+    if (sampleRate > 0) {
         uiStrs << QString("%1 Hz").arg(sampleRate);
         tooltipStrs << tr("Sample Rate: %1 Hz").arg(sampleRate);
     }
 
-    if (bitrate >= 0) {
+    if (bitrate > 0) {
         uiStrs << QString("%1 Kbps").arg(bitrate);
         tooltipStrs << tr("Bitrate: %1 Kbps").arg(bitrate);
     }
@@ -440,6 +440,8 @@ void MainWindow::initConnections()
             if (!fileRef.isNull() && fileRef.audioProperties()) {
                 TagLib::AudioProperties *prop = fileRef.audioProperties();
                 setAudioPropertyInfoForDisplay(prop->sampleRate(), prop->bitrate(), prop->channels(), suffix);
+            } else {
+                qDebug() << "No Audio Properties from TagLib";
             }
 
             if (!fileRef.isNull() && fileRef.tag()) {
@@ -447,6 +449,10 @@ void MainWindow::initConnections()
                 setAudioMetadataForDisplay(QString::fromStdString(tag->title().to8Bit(true)),
                                            QString::fromStdString(tag->artist().to8Bit(true)),
                                            QString::fromStdString(tag->album().to8Bit(true)));
+                m_urlMissingTagLibMetadata.clear();
+            } else {
+                qDebug() << "No Audio Metadata from TagLib";
+                m_urlMissingTagLibMetadata = fileUrl;
             }
 #endif // NO_TAGLIB
         }
@@ -458,12 +464,17 @@ void MainWindow::initConnections()
         // see `02  Yoiyami Hanabi.mp3`'s Title. So we don't use Qt's one if tablib is available.
         qDebug() << metadata.stringValue(QMediaMetaData::Title) << metadata.stringValue(QMediaMetaData::Author);
 #ifdef NO_TAGLIB
-        setAudioMetadataForDisplay(metadata.stringValue(QMediaMetaData::Title),
-                                   metadata.stringValue(QMediaMetaData::Author),
-                                   metadata.stringValue(QMediaMetaData::AlbumTitle));
-        setAudioPropertyInfoForDisplay(-1, metadata.value(QMediaMetaData::AudioBitRate).toInt() / 1000,
-                                       -1, metadata.stringValue(QMediaMetaData::FileFormat));
+        bool needMetadataFromQt = true;
+#else
+        bool needMetadataFromQt = m_urlMissingTagLibMetadata == m_mediaPlayer->source();
 #endif // NO_TAGLIB
+        if (needMetadataFromQt) {
+            setAudioMetadataForDisplay(metadata.stringValue(QMediaMetaData::Title),
+                                       metadata.stringValue(QMediaMetaData::Author),
+                                       metadata.stringValue(QMediaMetaData::AlbumTitle));
+            setAudioPropertyInfoForDisplay(-1, metadata.value(QMediaMetaData::AudioBitRate).toInt() / 1000,
+                                           -1, metadata.stringValue(QMediaMetaData::FileFormat));
+        }
         QVariant coverArt(metadata.value(QMediaMetaData::ThumbnailImage));
         if (!coverArt.isNull()) {
             ui->coverLabel->setPixmap(QPixmap::fromImage(coverArt.value<QImage>()));

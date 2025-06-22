@@ -7,6 +7,7 @@
 
 #include <QMainWindow>
 #include <QVariant>
+#include <QUrl>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -89,6 +90,7 @@ private:
     bool m_playbackSliderPressed = false;
     QLinearGradient m_bgLinearGradient;
     QPixmap m_skin;
+    QUrl m_urlMissingTagLibMetadata;
     enum PlaybackMode m_playbackMode = CurrentItemInLoop;
 
     Ui::MainWindow *ui;
