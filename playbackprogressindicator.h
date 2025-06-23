@@ -28,7 +28,9 @@ public:
     void setDuration(qint64 dur);
     void setChapters(QList<std::pair<qint64, QString>> chapters);
 
+    static QList<std::pair<qint64, QString>> tryLoadChapters(const QString & filePath);
     static QList<std::pair<qint64, QString>> tryLoadSidecarChapterFile(const QString & filePath);
+    static QList<std::pair<qint64, QString>> tryLoadChaptersFromMetadata(const QString & filePath);
     static QList<std::pair<qint64, QString>> parseCHPChapterFile(const QString & filePath);
     static QList<std::pair<qint64, QString>> parsePBFChapterFile(const QString & filePath);
 

@@ -271,20 +271,21 @@ void MainWindow::loadFile()
 
     m_playlistManager->loadPlaylist(urlList);
     const QUrl & firstUrl = urlList.first();
-    const QString firstFilePath = firstUrl.toLocalFile();
-    m_mediaPlayer->setSource(firstUrl);
-    m_lrcbar->loadLyrics(firstFilePath);
-    QList<std::pair<qint64, QString>> chapters(PlaybackProgressIndicator::tryLoadSidecarChapterFile(firstFilePath));
+    loadFile(firstUrl);
+}
+
+void MainWindow::loadFile(const QUrl &url)
+{
+    const QString filePath = url.toLocalFile();
+    m_mediaPlayer->setSource(url);
+    m_lrcbar->loadLyrics(filePath);
+    QList<std::pair<qint64, QString>> chapters(PlaybackProgressIndicator::tryLoadChapters(filePath));
     ui->playbackProgressIndicator->setChapters(chapters);
 }
 
 void MainWindow::loadByModelIndex(const QModelIndex & index)
 {
-    m_mediaPlayer->setSource(m_playlistManager->urlByIndex(index));
-    QString filePath(m_playlistManager->localFileByIndex(index));
-    m_lrcbar->loadLyrics(filePath);
-    QList<std::pair<qint64, QString>> chapters(PlaybackProgressIndicator::tryLoadSidecarChapterFile(filePath));
-    ui->playbackProgressIndicator->setChapters(chapters);
+    loadFile(m_playlistManager->urlByIndex(index));
 }
 
 void MainWindow::play()

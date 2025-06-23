@@ -11,6 +11,15 @@
 #include <QPainterPath>
 #include <QRegularExpression>
 
+#ifdef HAVE_FFMPEG
+extern "C" {
+#include <libavformat/avformat.h>
+#include <libavutil/avutil.h>
+#include <libavutil/dict.h>
+#include <libavutil/time.h> // Contains AV_TIME_BASE and AV_TIME_BASE_Q
+} // extern "C"
+#endif // HAVE_FFMPEG
+
 PlaybackProgressIndicator::PlaybackProgressIndicator(QWidget *parent) :
     QWidget(parent)
 {
@@ -30,6 +39,7 @@ void PlaybackProgressIndicator::setDuration(qint64 dur)
 
 void PlaybackProgressIndicator::setChapters(QList<std::pair<qint64, QString> > chapters)
 {
+    qDebug() << chapters;
     m_chapterModel.clear();
     for (const std::pair<qint64, QString> & chapter : chapters) {
         QStandardItem * chapterItem = new QStandardItem(chapter.second);
@@ -37,6 +47,15 @@ void PlaybackProgressIndicator::setChapters(QList<std::pair<qint64, QString> > c
         m_chapterModel.appendRow(chapterItem);
     }
     update();
+}
+
+QList<std::pair<qint64, QString> > PlaybackProgressIndicator::tryLoadChapters(const QString &filePath)
+{
+    auto chapters = tryLoadSidecarChapterFile(filePath);
+    if (chapters.size() == 0) {
+        chapters = tryLoadChaptersFromMetadata(filePath);
+    }
+    return chapters;
 }
 
 QList<std::pair<qint64, QString> > PlaybackProgressIndicator::tryLoadSidecarChapterFile(const QString &filePath)
@@ -61,6 +80,98 @@ QList<std::pair<qint64, QString> > PlaybackProgressIndicator::tryLoadSidecarChap
         return parseCHPChapterFile(fileInfo.absoluteFilePath());
     }
     return {};
+}
+
+#ifdef HAVE_FFMPEG
+
+// Helper function to convert FFmpeg time (in time_base units) to milliseconds
+qint64 convertTimestampToMilliseconds(int64_t timestamp, AVRational time_base) {
+    // Convert to seconds first, then to milliseconds and cast to qint64
+    return static_cast<qint64>((double)timestamp * av_q2d(time_base) * 1000.0);
+}
+
+// Helper function to print FFmpeg errors
+void printFFmpegError(int errnum) {
+    char errbuf[AV_ERROR_MAX_STRING_SIZE];
+    av_strerror(errnum, errbuf, sizeof(errbuf));
+    qCritical() << "FFmpeg error:" << errbuf;
+}
+
+#endif // HAVE_FFMPEG
+
+QList<std::pair<qint64, QString> > PlaybackProgressIndicator::tryLoadChaptersFromMetadata(const QString &filePath)
+{
+#ifdef HAVE_FFMPEG
+    if (!QFile::exists(filePath)) {
+        qCritical() << "Error: File not found" << filePath;
+        return {};
+    }
+
+    AVFormatContext* format_ctx = nullptr; // FFmpeg format context
+    int ret = 0; // Return value for FFmpeg functions
+
+    qInfo() << "Attempting to open file:" << filePath;
+
+    // Open the input file and read the header.
+    // The last two arguments (AVInputFormat*, AVDictionary**) are optional.
+    // Passing nullptr for them means FFmpeg will try to guess the format
+    // and no options will be passed to the demuxer.
+    ret = avformat_open_input(&format_ctx, filePath.toUtf8().constData(), nullptr, nullptr);
+    if (ret < 0) {
+        qCritical() << "Could not open input file:" << filePath;
+        printFFmpegError(ret);
+        return {};
+    }
+    qInfo() << "File opened successfully.";
+
+    // Read stream information from the file.
+    // This populates format_ctx->streams and other metadata, including chapters.
+    ret = avformat_find_stream_info(format_ctx, nullptr);
+    if (ret < 0) {
+        qCritical() << "Could not find stream information for file:" << filePath;
+        printFFmpegError(ret);
+        avformat_close_input(&format_ctx); // Close the context before returning
+        return {};
+    }
+    qInfo() << "Stream information found.";
+
+    QList<std::pair<qint64, QString>> chapterList;
+
+    // Check if there are any chapters
+    if (format_ctx->nb_chapters == 0) {
+        qInfo() << "No chapters found in file:" << filePath;
+    } else {
+        qInfo() << "Found" << format_ctx->nb_chapters << "chapters.";
+        // Iterate through each chapter
+        for (unsigned int i = 0; i < format_ctx->nb_chapters; ++i) {
+            AVChapter* chapter = format_ctx->chapters[i];
+
+            // Chapter timestamps are typically in AV_TIME_BASE units by default
+            // unless the chapter itself has a specific time_base.
+            // For simplicity and common cases, we use AV_TIME_BASE_Q.
+            qint64 start_ms = convertTimestampToMilliseconds(chapter->start, chapter->time_base);
+
+            // Get the chapter title from its metadata.
+            // av_dict_get(dictionary, key, prev, flags)
+            // prev is used for iterating through multiple entries with the same key,
+            // we want the first one so we pass nullptr. flags=0 for case-insensitive.
+            AVDictionaryEntry* title_tag = av_dict_get(chapter->metadata, "title", nullptr, 0);
+            QString chapter_title = (title_tag && title_tag->value) ? QString::fromUtf8(title_tag->value) : "Untitled Chapter";
+
+            chapterList.append(std::make_pair(start_ms, chapter_title));
+        }
+    }
+
+    // Close the input file.
+    // This also frees the format_ctx and associated data.
+    avformat_close_input(&format_ctx);
+    qInfo() << "File closed.";
+
+    return chapterList;
+#else
+    qInfo() << "FFmpeg not found during build.";
+    return {};
+#endif // HAVE_FFMPEG
 }
 
 QList<std::pair<qint64, QString> > PlaybackProgressIndicator::parseCHPChapterFile(const QString &filePath)

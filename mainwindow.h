@@ -56,6 +56,7 @@ protected:
     void dropEvent(QDropEvent *e) override;
 
     void loadFile();
+    void loadFile(const QUrl &url);
     void loadByModelIndex(const QModelIndex &index);
     void play();
 

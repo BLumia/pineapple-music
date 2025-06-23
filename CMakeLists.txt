@@ -18,6 +18,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 option(USE_QTEXTCODEC "Use QTextCodec instead of QStringConverter, in case Qt is not built with ICU" OFF)
 
 find_package(Qt6 6.6 COMPONENTS Widgets Multimedia Network LinguistTools REQUIRED)
+find_package(FFmpeg COMPONENTS avutil avformat)
 find_package(TagLib 2.0.0)
 find_package(KF6Codecs 6.1.0)
 
@@ -94,6 +95,11 @@ endif ()
 if (TARGET KF6::Codecs)
     target_compile_definitions(${EXE_NAME} PRIVATE HAVE_KCODECS=1)
     target_link_libraries (${EXE_NAME} PRIVATE KF6::Codecs)
+endif ()
+
+if (FFmpeg_FOUND)
+    target_compile_definitions(${EXE_NAME} PRIVATE HAVE_FFMPEG=1)
+    target_link_libraries (${EXE_NAME} PRIVATE FFmpeg::avutil FFmpeg::avformat)
 endif ()
 
 target_link_libraries(${EXE_NAME} PRIVATE Qt::Widgets Qt::Multimedia Qt::Network kissfft::kissfft)
