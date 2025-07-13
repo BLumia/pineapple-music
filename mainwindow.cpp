@@ -687,6 +687,9 @@ void MainWindow::on_actionHelp_triggered()
 #ifdef HAVE_KCODECS
         QStringLiteral("- [KCodecs](https://invent.kde.org/frameworks/kcodecs)\n") %
 #endif // NO_TAGLIB
+#ifdef HAVE_FFMPEG
+        QStringLiteral("- [FFmpeg](https://ffmpeg.org/)\n") %
+#endif // HAVE_FFMPEG
         "\n"
         "[Source Code](https://github.com/BLumia/pineapple-music)\n"
         "\n"

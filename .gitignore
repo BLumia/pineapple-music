@@ -1,8 +1,10 @@
 # Common build folder
 [Bb]uild/
+build-*/
 
 # IDE folder
 .vscode/
+.idea/
 
 # User config file
 CMakeLists.txt.user*

@@ -7,9 +7,11 @@ Since **I** just need a simple player which *just works* right now, so I did man
 We have the following features:
 
 - [Sidecar](https://en.wikipedia.org/wiki/Sidecar_file) lyrics file (`.lrc`) support with an optional desktop lyrics bar widget
-- Sidecar chapter file support
-  - [YouTube-style chapter](https://support.google.com/youtube/answer/9884579) saved to a plain text file with `.chp` suffix
-  - PotPlayer `.pbf` file, `[Bookmark]`s as chapters
+- Chapter file support
+  - Sidecar chapter file support:
+    - [YouTube-style chapter](https://support.google.com/youtube/answer/9884579) saved to a plain text file with `.chp` suffix
+    - PotPlayer `.pbf` file, `[Bookmark]`s as chapters
+  - Built-in chapter support (require build with FFmpeg)
 - Auto-load all audio files in the same folder of the file that you attempted to play, into a playlist
 
 These features are not available, some of them are TBD and others are not planned:
@@ -31,10 +33,14 @@ These features are not available, some of them are TBD and others are not planne
 
 Current state, we need:
 
- - `cmake` as the build system.
- - `qt6` with `qt6-multimedia` since we use it for playback.
- - `taglib` to get the audio file properties.
- - `kissfft` for FFT support (will be downloaded at configure-time by `cmake`).
+- `cmake` as the build system.
+- `qt6` with `qt6-multimedia` since we use it for playback.
+- `kissfft` for FFT support (will be downloaded at configure-time by `cmake`).
+- (optional) `taglib` to get the audio file properties.
+- (optional) `kf6codecs` to get the lyrics encoding correct.
+- (optional) `ffmpeg` to get the audio chapter properties.
+  - It's suggested to use the same FFmpeg version that Qt Multimedia uses, so we can reuse the FFmpeg library binaries that Qt uses.
+    - You can know the version by checking [Qt documentation's FFmpeg attribution page](https://doc.qt.io/qt-6.9/qtmultimedia-attribution-ffmpeg.html)
 
 Then we can build it with any proper c++ compiler like g++ or msvc.
 
