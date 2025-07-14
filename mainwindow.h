@@ -22,6 +22,7 @@ QT_END_NAMESPACE
 class FFTSpectrum;
 class LrcBar;
 class PlaylistManager;
+class TaskBarManager;
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
@@ -103,6 +104,7 @@ private:
     LrcBar *m_lrcbar;
     QPropertyAnimation *m_fadeOutAnimation;
     PlaylistManager *m_playlistManager;
+    TaskBarManager *m_taskbarManager;
 
     void initUiAndAnimation();
     void initConnections();

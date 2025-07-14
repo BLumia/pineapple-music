@@ -58,6 +58,7 @@ set (PMUSIC_HEADER_FILES
     lyricsmanager.h
     fftspectrum.h
     playbackprogressindicator.h
+    taskbarmanager.h
 )
 
 set (PMUSIC_UI_FILES
@@ -84,6 +85,9 @@ TS_FILES
 
 if (WIN32)
     target_sources(${EXE_NAME} PRIVATE assets/pineapple-music.rc)
+    target_sources(${EXE_NAME} PRIVATE taskbarmanager.cpp)
+else ()
+    target_sources(${EXE_NAME} PRIVATE taskbarmanager_dummy.cpp)
 endif ()
 
 if (NOT TagLib_FOUND)

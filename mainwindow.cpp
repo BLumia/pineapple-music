@@ -8,6 +8,7 @@
 #include "playlistmanager.h"
 #include "fftspectrum.h"
 #include "lrcbar.h"
+#include "taskbarmanager.h"
 
 // taglib
 #ifndef NO_TAGLIB
@@ -34,6 +35,7 @@
 #include <QStringBuilder>
 #include <QSettings>
 #include <QGraphicsDropShadowEffect>
+#include <QTimer>
 
 constexpr QSize miniSize(490, 160);
 constexpr QSize fullSize(490, 420);
@@ -47,6 +49,7 @@ MainWindow::MainWindow(QWidget *parent)
     , m_fftSpectrum(new FFTSpectrum(this))
     , m_lrcbar(new LrcBar(nullptr))
     , m_playlistManager(new PlaylistManager(this))
+    , m_taskbarManager(new TaskBarManager(this))
 {
     ui->setupUi(this);
     m_playlistManager->setAutoLoadFilterSuffixes({
@@ -70,12 +73,21 @@ MainWindow::MainWindow(QWidget *parent)
     setWindowFlags(Qt::FramelessWindowHint | Qt::WindowSystemMenuHint | Qt::WindowMinimizeButtonHint);
     setAttribute(Qt::WA_TranslucentBackground, true);
 
+    m_taskbarManager->setCanTogglePlayback(true);
+    m_taskbarManager->setCanSkipBackward(true);
+    m_taskbarManager->setCanSkipForward(true);
+    m_taskbarManager->setShowProgress(true);
+
     loadConfig();
     loadSkinData();
     initConnections();
     initUiAndAnimation();
 
     centerWindow();
+
+    QTimer::singleShot(1000, [this](){
+        m_taskbarManager->setWinId(window()->winId());
+    });
 }
 
 MainWindow::~MainWindow()
@@ -492,6 +504,7 @@ void MainWindow::initConnections()
         ui->nowTimeLabel->setText(ms2str(pos));
         if (m_mediaPlayer->duration() != 0) {
             ui->playbackProgressIndicator->setPosition(pos);
+            m_taskbarManager->setProgressValue(pos);
         }
         m_lrcbar->playbackPositionChanged(pos, m_mediaPlayer->duration());
     });
@@ -506,6 +519,7 @@ void MainWindow::initConnections()
 
     connect(m_mediaPlayer, &QMediaPlayer::durationChanged, this, [=](qint64 dua) {
         ui->playbackProgressIndicator->setDuration(dua);
+        m_taskbarManager->setProgressMaximum(dua);
         ui->totalTimeLabel->setText(ms2str(dua));
     });
 
@@ -519,6 +533,7 @@ void MainWindow::initConnections()
             ui->playBtn->setIcon(QIcon(":/icons/icons/media-playback-start.png"));
             break;
         }
+        m_taskbarManager->setPlaybackState(newState);
     });
 
     connect(m_audioOutput, &QAudioOutput::volumeChanged, this, [=](float vol) {
@@ -559,9 +574,21 @@ void MainWindow::initConnections()
         }
     });
 
-   connect(m_mediaPlayer, &QMediaPlayer::errorOccurred, this, [=](QMediaPlayer::Error error, const QString &errorString) {
+    connect(m_taskbarManager, &TaskBarManager::togglePlayback, this, [this](){
+        on_playBtn_clicked();
+    });
+
+    connect(m_taskbarManager, &TaskBarManager::skipBackward, this, [this](){
+        on_prevBtn_clicked();
+    });
+
+    connect(m_taskbarManager, &TaskBarManager::skipForward, this, [this](){
+        on_nextBtn_clicked();
+    });
+
+    connect(m_mediaPlayer, &QMediaPlayer::errorOccurred, this, [=](QMediaPlayer::Error error, const QString &errorString) {
         qDebug() << error << errorString;
-   });
+    });
 }
 
 void MainWindow::loadConfig()
