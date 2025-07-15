@@ -27,6 +27,7 @@
 #include <QListView>
 #include <QCollator>
 #include <QMimeData>
+#include <QMenu>
 #include <QWindow>
 #include <QStandardPaths>
 #include <QMediaDevices>
@@ -265,6 +266,16 @@ void MainWindow::dropEvent(QDropEvent *e)
         loadByModelIndex(modelIndex);
         play();
     }
+}
+
+void MainWindow::contextMenuEvent(QContextMenuEvent *event)
+{
+    QMenu * menu = new QMenu;
+    menu->addAction(ui->actionHelp);
+    menu->exec(mapToGlobal(event->pos()));
+    menu->deleteLater();
+
+    return QMainWindow::contextMenuEvent(event);
 }
 
 void MainWindow::loadFile()
@@ -734,4 +745,3 @@ QGraphicsDropShadowEffect *MainWindow::createLabelShadowEffect()
     effect->setOffset(1, 1);
     return effect;
 }
-

@@ -217,7 +217,7 @@ QListView {
            <item>
             <spacer name="horizontalSpacer">
              <property name="orientation">
-              <enum>Qt::Orientation::Horizontal</enum>
+              <enum>Qt::Horizontal</enum>
              </property>
              <property name="sizeHint" stdset="0">
               <size>
@@ -295,7 +295,7 @@ QListView {
          <item>
           <layout class="QVBoxLayout" name="playerPanelLayout">
            <property name="sizeConstraint">
-            <enum>QLayout::SizeConstraint::SetDefaultConstraint</enum>
+            <enum>QLayout::SetDefaultConstraint</enum>
            </property>
            <property name="rightMargin">
             <number>10</number>
@@ -364,7 +364,7 @@ QListView {
                 <string notr="true">0:00</string>
                </property>
                <property name="alignment">
-                <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
+                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
                </property>
               </widget>
              </item>
@@ -599,7 +599,7 @@ QListView {
                 <number>100</number>
                </property>
                <property name="orientation">
-                <enum>Qt::Orientation::Horizontal</enum>
+                <enum>Qt::Horizontal</enum>
                </property>
               </widget>
              </item>
@@ -653,17 +653,20 @@ QListView {
    </layout>
   </widget>
   <action name="actionHelp">
+   <property name="icon">
+    <iconset theme="system-help"/>
+   </property>
    <property name="text">
-    <string>Help</string>
+    <string>About</string>
    </property>
    <property name="toolTip">
-    <string>Help</string>
+    <string>About</string>
    </property>
    <property name="shortcut">
     <string>F1</string>
    </property>
    <property name="menuRole">
-    <enum>QAction::MenuRole::NoRole</enum>
+    <enum>QAction::AboutRole</enum>
    </property>
   </action>
   <action name="actionOpen">
@@ -677,7 +680,7 @@ QListView {
     <string>Ctrl+O</string>
    </property>
    <property name="menuRole">
-    <enum>QAction::MenuRole::NoRole</enum>
+    <enum>QAction::NoRole</enum>
    </property>
   </action>
  </widget>

@@ -55,6 +55,7 @@ protected:
     void mouseReleaseEvent(QMouseEvent *event) override;
     void dragEnterEvent(QDragEnterEvent *e) override;
     void dropEvent(QDropEvent *e) override;
+    void contextMenuEvent(QContextMenuEvent *event) override;
 
     void loadFile();
     void loadFile(const QUrl &url);
