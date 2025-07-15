@@ -11,6 +11,11 @@
 #include <QPainter>
 
 #include <kissfft.hh>
+#include <cmath>
+
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
 
 FFTSpectrum::FFTSpectrum(QWidget* parent)
     : QWidget(parent)
@@ -81,14 +86,35 @@ FFTSpectrum::FFTSpectrum(QWidget* parent)
             qWarning() << "Unsupported format or channel config:" << sampleFormat << channelConfig;
             return;
         }
+        // Apply Hanning window to reduce spectral leakage
+        for (int i = 0; i < frameCount; ++i) {
+            float window = 0.5f * (1.0f - cos(2.0f * M_PI * i / (frameCount - 1)));
+            samples[i].real(samples[i].real() * window);
+        }
         fft.transform(samples.data(), mass.data());
-        m_freq.resize(frameCount);
-        for (int i = 0; i < frameCount; i++) {
+        // Use only the first half of FFT result (positive frequencies)
+        int spectrumSize = frameCount / 2;
+        m_freq.resize(spectrumSize);
+        for (int i = 0; i < spectrumSize; i++) {
             m_freq[i] = sqrt(mass[i].real() * mass[i].real() + mass[i].imag() * mass[i].imag());
         }
+
+        // Remove DC component and very low frequencies (like most spectrum analyzers do)
+        // DC component (0 Hz) is usually not musically relevant
+        m_freq[0] = 0;
+
+        // Optionally remove the first few bins (very low frequencies below ~20Hz)
+        // Calculate how many bins correspond to frequencies below 20Hz
+        int sampleRate = fmt.sampleRate();
+        int lowFreqCutoff = std::min(3, (20 * frameCount) / (sampleRate * 2)); // Limit to first 3 bins max
+        for (int i = 1; i <= lowFreqCutoff && i < spectrumSize; i++) {
+            m_freq[i] *= (float(i) / float(lowFreqCutoff + 1)); // Gradual fade-in instead of hard cut
+        }
+
         for (auto& val : m_freq) {
             val = log10(val + 1);
         }
+
         update();
     });
 #endif // QT_VERSION >= QT_VERSION_CHECK(6, 8, 0)
@@ -113,11 +139,19 @@ void FFTSpectrum::paintEvent(QPaintEvent* e)
     if (!m_freq.empty()) {
         int width = this->width();
         int height = this->height();
-        int barWidth = std::max(1, (int)(width / m_freq.size()));
-        for (int i = 0; i < m_freq.size(); i++) {
-            int barHeight = static_cast<int>(sqrt(m_freq[i]) * height * 0.5);
-            QColor color(70, 130, 180, std::min(255, (int)(140 * m_freq[i]) + 90));
-            painter.fillRect(i * barWidth, height - barHeight, barWidth, barHeight, color);
+        int barWidth = std::max(1, width / static_cast<int>(m_freq.size()));
+
+        for (size_t i = 0; i < m_freq.size(); i++) {
+            // Use sqrt to compress the range similar to original, but safer
+            int barHeight = static_cast<int>(sqrt(std::max(0.0f, m_freq[i])) * height * 0.5);
+            barHeight = std::max(0, std::min(barHeight, height));
+
+            // Calculate alpha based on frequency value, similar to original
+            int alpha = std::min(255, static_cast<int>(140 * m_freq[i]) + 90);
+            alpha = std::max(90, alpha);
+
+            QColor color(70, 130, 180, alpha);
+            painter.fillRect(static_cast<int>(i) * barWidth, height - barHeight, barWidth, barHeight, color);
         }
     }
 }
