@@ -261,6 +261,15 @@ void MainWindow::dropEvent(QDropEvent *e)
         return;
     }
 
+    if (fileName.endsWith(".m3u") || fileName.endsWith(".m3u8")) {
+        const QModelIndex & modelIndex = m_playlistManager->loadM3U8Playlist(urls.constFirst());
+        if (modelIndex.isValid()) {
+            loadByModelIndex(modelIndex);
+            play();
+        }
+        return;
+    }
+
     const QModelIndex & modelIndex = m_playlistManager->loadPlaylist(urls);
     if (modelIndex.isValid()) {
         loadByModelIndex(modelIndex);
@@ -292,9 +301,8 @@ void MainWindow::loadFile()
         urlList.append(QUrl::fromLocalFile(fileName));
     }
 
-    m_playlistManager->loadPlaylist(urlList);
-    const QUrl & firstUrl = urlList.first();
-    loadFile(firstUrl);
+    const QModelIndex & modelIndex = m_playlistManager->loadPlaylist(urlList);
+    loadByModelIndex(modelIndex);
 }
 
 void MainWindow::loadFile(const QUrl &url)
