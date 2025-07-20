@@ -24,10 +24,15 @@ public:
     explicit PlaybackProgressIndicator(QWidget *parent = nullptr);
     ~PlaybackProgressIndicator() = default;
 
+    QStandardItemModel* chapterModel() { return &m_chapterModel; }
+    QModelIndex currentChapterItem() const;
+    QString currentChapterName() const;
+
     void setPosition(qint64 pos);
     void setDuration(qint64 dur);
     void setChapters(QList<std::pair<qint64, QString>> chapters);
 
+    static QString formatTime(qint64 milliseconds);
     static QList<std::pair<qint64, QString>> tryLoadChapters(const QString & filePath);
     static QList<std::pair<qint64, QString>> tryLoadSidecarChapterFile(const QString & filePath);
     static QList<std::pair<qint64, QString>> tryLoadChaptersFromMetadata(const QString & filePath);

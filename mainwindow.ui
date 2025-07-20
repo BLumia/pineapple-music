@@ -109,6 +109,18 @@ QLabel#coverLabel {
 QListView {
 	color: white;
 	background: rgba(0, 0, 0, 50);
+}
+
+/****** TreeView ******/
+
+QTreeView {
+	color: white;
+	background: rgba(0, 0, 0, 50);
+}
+
+QHeaderView {
+	color: white;
+	background-color: rgba(200, 200, 200, 50);
 }</string>
   </property>
   <property name="locale">
@@ -355,6 +367,19 @@ QListView {
               <widget class="QLabel" name="nowTimeLabel">
                <property name="text">
                 <string notr="true">0:00</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="chapterNameBtn">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="text">
+                <string/>
                </property>
               </widget>
              </item>
@@ -626,7 +651,10 @@ QListView {
         <height>0</height>
        </size>
       </property>
-      <widget class="QWidget" name="pluginStackedWidgetPage1">
+      <property name="currentIndex">
+       <number>1</number>
+      </property>
+      <widget class="QWidget" name="playlistViewPage">
        <layout class="QVBoxLayout" name="verticalLayout_2">
         <property name="spacing">
          <number>0</number>
@@ -645,6 +673,29 @@ QListView {
         </property>
         <item>
          <widget class="QListView" name="playlistView"/>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="chaptersViewPage">
+       <layout class="QVBoxLayout" name="verticalLayout_3">
+        <property name="leftMargin">
+         <number>4</number>
+        </property>
+        <property name="topMargin">
+         <number>0</number>
+        </property>
+        <property name="rightMargin">
+         <number>4</number>
+        </property>
+        <property name="bottomMargin">
+         <number>4</number>
+        </property>
+        <item>
+         <widget class="QTreeView" name="chapterlistView">
+          <property name="editTriggers">
+           <set>QAbstractItemView::NoEditTriggers</set>
+          </property>
+         </widget>
         </item>
        </layout>
       </widget>

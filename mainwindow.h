@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2024 Gary Wang <git@blumia.net>
+// SPDX-FileCopyrightText: 2025 Gary Wang <opensource@blumia.net>
 //
 // SPDX-License-Identifier: MIT
 
@@ -80,6 +80,8 @@ private slots:
     void on_playListBtn_clicked();
     void on_playlistView_activated(const QModelIndex &index);
     void on_lrcBtn_clicked();
+    void on_chapterlistView_activated(const QModelIndex &index);
+    void on_chapterNameBtn_clicked();
     void on_actionOpen_triggered();
     void on_actionHelp_triggered();
 

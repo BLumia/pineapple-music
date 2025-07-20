@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2024 Gary Wang <git@blumia.net>
+// SPDX-FileCopyrightText: 2025 Gary Wang <opensource@blumia.net>
 //
 // SPDX-License-Identifier: MIT
 
@@ -60,6 +60,9 @@ MainWindow::MainWindow(QWidget *parent)
     m_mediaPlayer->setAudioOutput(m_audioOutput);
     m_mediaPlayer->setLoops(QMediaPlayer::Infinite);
     ui->playlistView->setModel(m_playlistManager->model());
+
+    ui->chapterlistView->setModel(ui->playbackProgressIndicator->chapterModel());
+    ui->chapterlistView->setRootIsDecorated(false);
 
     ui->actionHelp->setShortcut(QKeySequence::HelpContents);
     addAction(ui->actionHelp);
@@ -368,16 +371,6 @@ void MainWindow::on_playBtn_clicked()
     }
 }
 
-QString MainWindow::ms2str(qint64 ms)
-{
-    QTime duaTime(QTime::fromMSecsSinceStartOfDay(ms));
-    if (duaTime.hour() > 0) {
-        return duaTime.toString("h:mm:ss");
-    } else {
-        return duaTime.toString("m:ss");
-    }
-}
-
 QList<QUrl> MainWindow::strlst2urllst(QStringList strlst)
 {
     QList<QUrl> urlList;
@@ -520,12 +513,24 @@ void MainWindow::initConnections()
     });
 
     connect(m_mediaPlayer, &QMediaPlayer::positionChanged, this, [=](qint64 pos) {
-        ui->nowTimeLabel->setText(ms2str(pos));
+        ui->nowTimeLabel->setText(PlaybackProgressIndicator::formatTime(pos));
         if (m_mediaPlayer->duration() != 0) {
             ui->playbackProgressIndicator->setPosition(pos);
             m_taskbarManager->setProgressValue(pos);
         }
         m_lrcbar->playbackPositionChanged(pos, m_mediaPlayer->duration());
+
+        static QString lastChapterName;
+        if (ui->playbackProgressIndicator->chapterModel()->rowCount() > 0) {
+            QString currentChapterName = ui->playbackProgressIndicator->currentChapterName();
+            if (currentChapterName != lastChapterName) {
+                ui->chapterNameBtn->setText(currentChapterName);
+                lastChapterName = currentChapterName;
+            }
+        } else if (!lastChapterName.isEmpty()) {
+            ui->chapterNameBtn->setText("");
+            lastChapterName.clear();
+        }
     });
 
     connect(m_audioOutput, &QAudioOutput::mutedChanged, this, [=](bool muted) {
@@ -539,7 +544,7 @@ void MainWindow::initConnections()
     connect(m_mediaPlayer, &QMediaPlayer::durationChanged, this, [=](qint64 dua) {
         ui->playbackProgressIndicator->setDuration(dua);
         m_taskbarManager->setProgressMaximum(dua);
-        ui->totalTimeLabel->setText(ms2str(dua));
+        ui->totalTimeLabel->setText(PlaybackProgressIndicator::formatTime(dua));
     });
 
     connect(m_mediaPlayer, &QMediaPlayer::playbackStateChanged, this, [=](QMediaPlayer::PlaybackState newState) {
@@ -687,7 +692,16 @@ void MainWindow::on_setSkinBtn_clicked()
 
 void MainWindow::on_playListBtn_clicked()
 {
-    setFixedSize(size().height() < 200 ? fullSize : miniSize);
+    if (size().height() < 200) {
+        setFixedSize(fullSize);
+        ui->pluginStackedWidget->setCurrentWidget(ui->playlistViewPage);
+    } else {
+        if (ui->pluginStackedWidget->currentWidget() == ui->playlistViewPage) {
+            setFixedSize(miniSize);
+        } else {
+            ui->pluginStackedWidget->setCurrentWidget(ui->playlistViewPage);
+        }
+    }
 }
 
 void MainWindow::on_playlistView_activated(const QModelIndex &index)
@@ -703,6 +717,33 @@ void MainWindow::on_lrcBtn_clicked()
         m_lrcbar->hide();
     } else {
         m_lrcbar->show();
+    }
+}
+
+void MainWindow::on_chapterlistView_activated(const QModelIndex &index)
+{
+    if (!index.isValid()) return;
+
+    QModelIndex timeColumnIndex = index.sibling(index.row(), 0);
+    QStandardItem* timeItem = ui->playbackProgressIndicator->chapterModel()->itemFromIndex(timeColumnIndex);
+    if (!timeItem) return;
+
+    qint64 chapterStartTime = timeItem->data(PlaybackProgressIndicator::StartTimeMsRole).toLongLong();
+    m_mediaPlayer->setPosition(chapterStartTime);
+}
+
+void MainWindow::on_chapterNameBtn_clicked()
+{
+    if (size().height() < 200) {
+        setFixedSize(fullSize);
+    }
+    ui->pluginStackedWidget->setCurrentWidget(ui->chaptersViewPage);
+    if (ui->playbackProgressIndicator->chapterModel()->rowCount() > 0) {
+        const QModelIndex & curChapterItem = ui->playbackProgressIndicator->currentChapterItem();
+        if (curChapterItem.isValid()) {
+            ui->chapterlistView->setCurrentIndex(curChapterItem);
+            ui->chapterlistView->scrollTo(curChapterItem, QAbstractItemView::EnsureVisible);
+        }
     }
 }
 

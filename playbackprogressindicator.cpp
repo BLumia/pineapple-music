@@ -25,6 +25,37 @@ PlaybackProgressIndicator::PlaybackProgressIndicator(QWidget *parent) :
 {
 }
 
+QModelIndex PlaybackProgressIndicator::currentChapterItem() const
+{
+    int currentChapterIndex = -1;
+
+    for (int i = 0; i < m_chapterModel.rowCount(); i++) {
+        QStandardItem* timeItem = m_chapterModel.item(i, 0);
+        qint64 chapterStartTime = timeItem->data(PlaybackProgressIndicator::StartTimeMsRole).toLongLong();
+
+        if (m_position >= chapterStartTime) {
+            currentChapterIndex = i;
+        } else {
+            break;
+        }
+    }
+
+    if (currentChapterIndex >= 0) {
+        return m_chapterModel.index(currentChapterIndex, 0);
+    }
+
+    return {};
+}
+
+QString PlaybackProgressIndicator::currentChapterName() const
+{
+    const QModelIndex timeIndex(currentChapterItem());
+    if (timeIndex.isValid()) {
+        return m_chapterModel.item(timeIndex.row(), 1)->text();
+    }
+    return {};
+}
+
 void PlaybackProgressIndicator::setPosition(qint64 pos)
 {
     m_position = pos;
@@ -37,14 +68,34 @@ void PlaybackProgressIndicator::setDuration(qint64 dur)
     emit durationChanged(m_duration);
 }
 
+QString PlaybackProgressIndicator::formatTime(qint64 milliseconds)
+{
+    QTime duaTime(QTime::fromMSecsSinceStartOfDay(milliseconds));
+    if (duaTime.hour() > 0) {
+        return duaTime.toString("h:mm:ss");
+    } else {
+        return duaTime.toString("m:ss");
+    }
+}
+
 void PlaybackProgressIndicator::setChapters(QList<std::pair<qint64, QString> > chapters)
 {
-    qDebug() << chapters;
     m_chapterModel.clear();
+
+    m_chapterModel.setHorizontalHeaderLabels(QStringList() << tr("Time") << tr("Chapter Name"));
+
     for (const std::pair<qint64, QString> & chapter : chapters) {
+        QList<QStandardItem*> row;
+
+        QStandardItem * timeItem = new QStandardItem(formatTime(chapter.first));
+        timeItem->setData(chapter.first, StartTimeMsRole);
+        row.append(timeItem);
+
         QStandardItem * chapterItem = new QStandardItem(chapter.second);
         chapterItem->setData(chapter.first, StartTimeMsRole);
-        m_chapterModel.appendRow(chapterItem);
+        row.append(chapterItem);
+
+        m_chapterModel.appendRow(row);
     }
     update();
 }

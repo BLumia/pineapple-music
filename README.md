@@ -23,7 +23,6 @@ These features are not available, some of them are TBD and others are not planne
 - Limited system integration:
   - No [SMTC](https://learn.microsoft.com/en-us/uwp/api/windows.media.systemmediatransportcontrols) support under Windows for now
   - No [MPRIS](https://www.freedesktop.org/wiki/Specifications/mpris-spec/) support under Linux desktop for now
-  - No "playback progress on taskbar icon" and "taskbar thumbnail buttons" support whatever on Windows or Linux desktop for now
 - Limited lyrics (`.lrc`) loading support:
   - Currently no `.tlrc` (for translated lyrics) or `.rlrc` (for romanized lyrics) support.
   - Multi-line lyrics and duplicated timestamps are not supported
