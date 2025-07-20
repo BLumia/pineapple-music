@@ -714,7 +714,7 @@ QHeaderView {
     <string>About</string>
    </property>
    <property name="shortcut">
-    <string>F1</string>
+    <string notr="true">F1</string>
    </property>
    <property name="menuRole">
     <enum>QAction::AboutRole</enum>
@@ -728,7 +728,7 @@ QHeaderView {
     <string>Open</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+O</string>
+    <string notr="true">Ctrl+O</string>
    </property>
    <property name="menuRole">
     <enum>QAction::NoRole</enum>

@@ -61,6 +61,7 @@ MainWindow::MainWindow(QWidget *parent)
     m_mediaPlayer->setLoops(QMediaPlayer::Infinite);
     ui->playlistView->setModel(m_playlistManager->model());
 
+    ui->chapterNameBtn->setVisible(false);
     ui->chapterlistView->setModel(ui->playbackProgressIndicator->chapterModel());
     ui->chapterlistView->setRootIsDecorated(false);
 
@@ -527,9 +528,13 @@ void MainWindow::initConnections()
                 ui->chapterNameBtn->setText(currentChapterName);
                 lastChapterName = currentChapterName;
             }
-        } else if (!lastChapterName.isEmpty()) {
-            ui->chapterNameBtn->setText("");
-            lastChapterName.clear();
+            ui->chapterNameBtn->setVisible(true);
+        } else {
+            if (!lastChapterName.isEmpty()) {
+                ui->chapterNameBtn->setText("");
+                lastChapterName.clear();
+            }
+            ui->chapterNameBtn->setVisible(false);
         }
     });
 
