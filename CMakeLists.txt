@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.12)
 
-project(pineapple-music LANGUAGES CXX VERSION 0.3.0)
+project(pineapple-music LANGUAGES CXX VERSION 0.4.0)
 
 include (GNUInstallDirs)
 include (FeatureSummary)
