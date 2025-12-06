@@ -8,7 +8,7 @@ jobs:
     strategy:
       matrix:
         include:
-          - qt_ver: '6.9.3'
+          - qt_ver: '6.10.1'
             vs: '2022'
             aqt_arch: 'win64_msvc2022_64'
             msvc_arch: 'x64'
@@ -22,7 +22,7 @@ jobs:
       with:
         arch: ${{ matrix.aqt_arch }}
         version: ${{ matrix.qt_ver }}
-        modules: 'qtmultimedia qt5compat'
+        modules: 'qtmultimedia'
     - name: Build
       shell: cmd
       run: |
@@ -59,7 +59,7 @@ jobs:
         cmake --build build_dependencies/taglib --config Release --target=install -j || goto :error
         echo ::endgroup::
         :: ------ app ------
-        cmake -Bbuild . -DUSE_QTEXTCODEC=ON -DCMAKE_INSTALL_PREFIX='%PWD%\build\' || goto :error
+        cmake -Bbuild . -DUSE_QTEXTCODEC=OFF -DCMAKE_INSTALL_PREFIX='%PWD%\build\' || goto :error
         cmake --build build --config Release -j || goto :error
         cmake --build build --config Release --target=install || goto :error
         :: ------ pkg ------
