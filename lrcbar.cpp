@@ -10,9 +10,9 @@
 #include <QPainter>
 #include <QWindow>
 
-LrcBar::LrcBar(QWidget *parent)
+LrcBar::LrcBar(QWidget *parent, LyricsManager *mgr)
     : QWidget(parent, Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint | Qt::Tool)
-    , m_lrcMgr(new LyricsManager(this))
+    , m_lrcMgr(mgr)
 {
     m_font.setPointSize(30);
     m_font.setStyleStrategy(QFont::PreferAntialias);
@@ -35,6 +35,11 @@ LrcBar::LrcBar(QWidget *parent)
     setGeometry(QRect(QPoint((qApp->primaryScreen()->geometry().width() - windowSize.width()) / 2,
                              qApp->primaryScreen()->geometry().height() - windowSize.height() - 50),
                       windowSize));
+
+    connect(m_lrcMgr, &LyricsManager::lyricsLoaded, this, [this](bool){
+        m_currentTimeMs = 0;
+        update();
+    });
 }
 
 LrcBar::~LrcBar()
@@ -42,18 +47,11 @@ LrcBar::~LrcBar()
 
 }
 
-bool LrcBar::loadLyrics(QString filepath)
-{
-    m_currentTimeMs = 0;
-    return m_lrcMgr->loadLyrics(filepath);
-}
-
 void LrcBar::playbackPositionChanged(int timestampMs, int totalTimeMs)
 {
     if (!isVisible()) return;
 
     m_currentTimeMs = timestampMs;
-    m_lrcMgr->updateCurrentTimeMs(timestampMs, totalTimeMs);
     update();
 }
 

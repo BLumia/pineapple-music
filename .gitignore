@@ -6,6 +6,9 @@ build-*/
 .vscode/
 .idea/
 
+# Clangd cache
+.cache/
+
 # User config file
 CMakeLists.txt.user*
 

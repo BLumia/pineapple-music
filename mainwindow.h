@@ -21,6 +21,8 @@ QT_END_NAMESPACE
 
 class FFTSpectrum;
 class LrcBar;
+class LyricsManager;
+class LyricsWidget;
 class PlaylistManager;
 class TaskBarManager;
 class MainWindow : public QMainWindow
@@ -104,7 +106,9 @@ private:
     QMediaPlayer *m_mediaPlayer;
     QAudioOutput *m_audioOutput;
     FFTSpectrum* m_fftSpectrum;
+    LyricsManager *m_lyricsManager;
     LrcBar *m_lrcbar;
+    LyricsWidget *m_lyricsWidget;
     QPropertyAnimation *m_fadeOutAnimation;
     PlaylistManager *m_playlistManager;
     TaskBarManager *m_taskbarManager;

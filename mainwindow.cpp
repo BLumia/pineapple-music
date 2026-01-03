@@ -9,6 +9,8 @@
 #include "fftspectrum.h"
 #include "lrcbar.h"
 #include "taskbarmanager.h"
+#include "lyricsmanager.h"
+#include "lyricswidget.h"
 
 // taglib
 #ifndef NO_TAGLIB
@@ -48,11 +50,16 @@ MainWindow::MainWindow(QWidget *parent)
     , m_mediaPlayer(new QMediaPlayer(this))
     , m_audioOutput(new QAudioOutput(this))
     , m_fftSpectrum(new FFTSpectrum(this))
-    , m_lrcbar(new LrcBar(nullptr))
+    , m_lyricsManager(new LyricsManager(this))
+    , m_lrcbar(new LrcBar(nullptr, m_lyricsManager))
+    , m_lyricsWidget(new LyricsWidget(this))
     , m_playlistManager(new PlaylistManager(this))
     , m_taskbarManager(new TaskBarManager(this))
 {
     ui->setupUi(this);
+    m_lyricsWidget->setLyricsManager(m_lyricsManager);
+    ui->pluginStackedWidget->addWidget(m_lyricsWidget);
+
     m_playlistManager->setAutoLoadFilterSuffixes({
         "*.mp3", "*.wav", "*.aiff", "*.ape", "*.flac", "*.ogg", "*.oga", "*.mpga", "*.aac", "*.tta"
     });
@@ -255,7 +262,7 @@ void MainWindow::dropEvent(QDropEvent *e)
     }
 
     if (fileName.endsWith(".lrc")) {
-        m_lrcbar->loadLyrics(fileName);
+        m_lyricsManager->loadLyrics(fileName);
         return;
     }
 
@@ -313,7 +320,7 @@ void MainWindow::loadFile(const QUrl &url)
 {
     const QString filePath = url.toLocalFile();
     m_mediaPlayer->setSource(url);
-    m_lrcbar->loadLyrics(filePath);
+    m_lyricsManager->loadLyrics(filePath);
     QList<std::pair<qint64, QString>> chapters(PlaybackProgressIndicator::tryLoadChapters(filePath));
     ui->playbackProgressIndicator->setChapters(chapters);
 }
@@ -519,7 +526,12 @@ void MainWindow::initConnections()
             ui->playbackProgressIndicator->setPosition(pos);
             m_taskbarManager->setProgressValue(pos);
         }
-        m_lrcbar->playbackPositionChanged(pos, m_mediaPlayer->duration());
+
+        if (m_lrcbar->isVisible() || m_lyricsWidget->isVisible()) {
+            m_lyricsManager->updateCurrentTimeMs(pos, m_mediaPlayer->duration());
+            m_lrcbar->playbackPositionChanged(pos, m_mediaPlayer->duration());
+            m_lyricsWidget->updatePosition(pos);
+        }
 
         static QString lastChapterName;
         if (ui->playbackProgressIndicator->chapterModel()->rowCount() > 0) {
@@ -718,6 +730,15 @@ void MainWindow::on_playlistView_activated(const QModelIndex &index)
 
 void MainWindow::on_lrcBtn_clicked()
 {
+    if (size().height() < 200) {
+        setFixedSize(fullSize);
+    }
+
+    if (ui->pluginStackedWidget->currentWidget() != m_lyricsWidget) {
+        ui->pluginStackedWidget->setCurrentWidget(m_lyricsWidget);
+        return;
+    }
+
     if (m_lrcbar->isVisible()) {
         m_lrcbar->hide();
     } else {

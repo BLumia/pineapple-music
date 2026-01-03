@@ -25,7 +25,15 @@ public:
     QString lyrics(int lineOffset = 0) const;
     double maskPercent(int curTimeMs);
 
+    const QList<int>& timestamps() const;
+    const QHash<int, QString>& lyricsMap() const;
+    int currentLineIndex() const;
+
     static int parseTimeToMilliseconds(const QString& timeString);
+
+signals:
+    void lyricsLoaded(bool success);
+
 
 protected:
 
@@ -39,5 +47,6 @@ private:
     QList<int> m_timestampList;
     int m_currentLyricsTime = 0;
     int m_nextLyricsTime = 0;
+    int m_currentLineIndex = -1;
     int m_timeOffset = 0;
 };

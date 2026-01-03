@@ -13,10 +13,9 @@ class LrcBar : public QWidget
 {
     Q_OBJECT
 public:
-    explicit LrcBar(QWidget *parent);
+    explicit LrcBar(QWidget *parent, LyricsManager *mgr);
     ~LrcBar();
 
-    bool loadLyrics(QString filepath);
     void playbackPositionChanged(int timestampMs, int totalTimeMs);
 
 protected:

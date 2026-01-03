@@ -43,10 +43,14 @@ bool LyricsManager::loadLyrics(QString filepath)
     if (!filepath.endsWith(".lrc", Qt::CaseInsensitive)) {
         fileInfo.setFile(fileInfo.dir().filePath(fileInfo.completeBaseName() + ".lrc"));
     }
-    if (!fileInfo.exists()) return false;
+    if (!fileInfo.exists()) {
+        emit lyricsLoaded(false);
+        return false;
+    }
 
     QFile file(fileInfo.absoluteFilePath());
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        emit lyricsLoaded(false);
         return false;
     }
     QByteArray fileContent(file.readAll());
@@ -126,9 +130,11 @@ bool LyricsManager::loadLyrics(QString filepath)
     if (!m_lyricsMap.isEmpty()) {
         m_timestampList = m_lyricsMap.keys();
         std::sort(m_timestampList.begin(), m_timestampList.end());
+        emit lyricsLoaded(true);
         return true;
     }
 
+    emit lyricsLoaded(false);
     return false;
 }
 
@@ -151,6 +157,22 @@ void LyricsManager::updateCurrentTimeMs(int curTimeMs, int totalTimeMs)
         iter--;
     }
     m_currentLyricsTime = *iter;
+    m_currentLineIndex = std::distance(m_timestampList.begin(), iter);
+}
+
+const QList<int>& LyricsManager::timestamps() const
+{
+    return m_timestampList;
+}
+
+const QHash<int, QString>& LyricsManager::lyricsMap() const
+{
+    return m_lyricsMap;
+}
+
+int LyricsManager::currentLineIndex() const
+{
+    return m_currentLineIndex;
 }
 
 QString LyricsManager::lyrics(int lineOffset) const
@@ -197,6 +219,7 @@ void LyricsManager::reset()
 {
     m_currentLyricsTime = 0;
     m_nextLyricsTime = 0;
+    m_currentLineIndex = -1;
     m_timeOffset = 0;
     m_lyricsMap.clear();
     m_timestampList.clear();
