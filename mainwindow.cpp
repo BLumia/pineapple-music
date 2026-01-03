@@ -785,7 +785,7 @@ void MainWindow::on_actionHelp_triggered()
     infoBox.setWindowTitle(tr("About"));
     infoBox.setStandardButtons(QMessageBox::Ok);
     infoBox.setText(
-        tr("Pineapple Music") %
+        QString("%1 %2").arg(tr("Pineapple Music")).arg(PMUSIC_VERSION_STRING) %
         "\n\n" %
         tr("Based on the following free software libraries:") %
         "\n\n" %
@@ -806,7 +806,7 @@ void MainWindow::on_actionHelp_triggered()
         "\n"
         "[Source Code](https://github.com/BLumia/pineapple-music)\n"
         "\n"
-        "Copyright &copy; 2025 [BLumia](https://github.com/BLumia/)"
+        "Copyright &copy; 2026 [BLumia](https://github.com/BLumia/)"
         );
     infoBox.setTextFormat(Qt::MarkdownText);
     infoBox.exec();

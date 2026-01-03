@@ -115,6 +115,10 @@ if (USE_QTEXTCODEC)
     target_link_libraries(${EXE_NAME} PRIVATE Qt6::Core5Compat)
 endif()
 
+target_compile_definitions(${EXE_NAME} PRIVATE
+    PMUSIC_VERSION_STRING="${CMAKE_PROJECT_VERSION}"
+)
+
 # Install settings
 if (WIN32)
     set_target_properties(${EXE_NAME} PROPERTIES
