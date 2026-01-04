@@ -32,8 +32,8 @@ LrcBar::LrcBar(QWidget *parent, LyricsManager *mgr)
 
     setAttribute(Qt::WA_TranslucentBackground);
     setMouseTracking(true);
-    setGeometry(QRect(QPoint((qApp->primaryScreen()->geometry().width() - windowSize.width()) / 2,
-                             qApp->primaryScreen()->geometry().height() - windowSize.height() - 50),
+    setGeometry(QRect(QPoint((qApp->primaryScreen()->availableGeometry().width() - windowSize.width()) / 2,
+                             qApp->primaryScreen()->availableGeometry().bottom() - windowSize.height() - 5),
                       windowSize));
 
     connect(m_lrcMgr, &LyricsManager::lyricsLoaded, this, [this](bool){
