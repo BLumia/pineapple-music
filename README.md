@@ -13,6 +13,7 @@ We have the following features:
     - PotPlayer `.pbf` file, `[Bookmark]`s as chapters
   - Built-in chapter support (require build with FFmpeg)
 - Auto-load all audio files in the same folder of the file that you attempted to play, into a playlist
+- [SMTC](https://learn.microsoft.com/en-us/uwp/api/windows.media.systemmediatransportcontrols) support on Windows
 
 These features are not available, some of them are TBD and others are not planned:
 
@@ -21,7 +22,6 @@ These features are not available, some of them are TBD and others are not planne
 - No music library management support and there won't be one!
   - It'll auto-load music files in the same folder of the file that you attempted to play, so organize your music files on a folder-basis.
 - Limited system integration:
-  - No [SMTC](https://learn.microsoft.com/en-us/uwp/api/windows.media.systemmediatransportcontrols) support under Windows for now
   - No [MPRIS](https://www.freedesktop.org/wiki/Specifications/mpris-spec/) support under Linux desktop for now
 - Limited lyrics (`.lrc`) loading support:
   - Currently no `.tlrc` (for translated lyrics) or `.rlrc` (for romanized lyrics) support.
