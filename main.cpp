@@ -13,8 +13,25 @@
 #include <QTranslator>
 #include <QDir>
 
+#ifdef Q_OS_WIN
+#include <windows.h>
+#endif
+
 int main(int argc, char *argv[])
 {
+#ifdef Q_OS_WIN
+    typedef HRESULT(WINAPI *SetCurrentProcessExplicitAppUserModelIDProc)(PCWSTR);
+    HMODULE shell32 = LoadLibraryW(L"shell32.dll");
+    if (shell32) {
+        auto proc = reinterpret_cast<SetCurrentProcessExplicitAppUserModelIDProc>(
+            GetProcAddress(shell32, "SetCurrentProcessExplicitAppUserModelID"));
+        if (proc) {
+            proc(L"net.blumia.pineapple-music");
+        }
+        FreeLibrary(shell32);
+    }
+#endif
+
     QApplication a(argc, argv);
 
     QTranslator translator;

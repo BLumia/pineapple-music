@@ -4,8 +4,8 @@ environment:
   CMAKE_INSTALL_ROOT: C:\projects\cmake
   PACKAGE_INSTALL_ROOT: C:\projects\pir
   matrix:
-    - build_name: mingw1120_64_qt6_7
-      QTPATH: C:\Qt\6.8\mingw_64
+    - build_name: mingw1120_64_qt6_9
+      QTPATH: C:\Qt\6.9\mingw_64
       MINGW64: C:\Qt\mingw_64\Tools\mingw1310_64
 
 install:

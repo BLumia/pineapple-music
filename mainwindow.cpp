@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2025 Gary Wang <opensource@blumia.net>
+// SPDX-FileCopyrightText: 2026 Gary Wang <opensource@blumia.net>
 //
 // SPDX-License-Identifier: MIT
 
@@ -9,6 +9,7 @@
 #include "fftspectrum.h"
 #include "lrcbar.h"
 #include "taskbarmanager.h"
+#include "winmediacontrol.h"
 #include "lyricsmanager.h"
 #include "lyricswidget.h"
 
@@ -39,6 +40,7 @@
 #include <QSettings>
 #include <QGraphicsDropShadowEffect>
 #include <QTimer>
+#include <QFileInfo>
 
 constexpr QSize miniSize(490, 160);
 constexpr QSize fullSize(490, 420);
@@ -55,6 +57,7 @@ MainWindow::MainWindow(QWidget *parent)
     , m_lyricsWidget(new LyricsWidget(this))
     , m_playlistManager(new PlaylistManager(this))
     , m_taskbarManager(new TaskBarManager(this))
+    , m_mediaControl(new WinMediaControl(this))
 {
     ui->setupUi(this);
     m_lyricsWidget->setLyricsManager(m_lyricsManager);
@@ -98,7 +101,9 @@ MainWindow::MainWindow(QWidget *parent)
     centerWindow();
 
     QTimer::singleShot(1000, [this](){
-        m_taskbarManager->setWinId(window()->winId());
+        auto winId = window()->winId();
+        m_taskbarManager->setWinId(winId);
+        m_mediaControl->initialize(reinterpret_cast<void*>(winId));
     });
 }
 
@@ -163,15 +168,23 @@ void MainWindow::setAudioMetadataForDisplay(QString title, QString artist, QStri
 {
     Q_UNUSED(album);
 
+    if (title.isEmpty()) {
+        title = QFileInfo(m_mediaPlayer->source().fileName()).completeBaseName();
+    }
+
     if (!title.isEmpty()) {
         if (!artist.isEmpty()) {
-            ui->titleLabel->setText(QString("%1 - %2").arg(artist, title));
+            title = QString("%1 - %2").arg(artist, title);
         } else if (!album.isEmpty()) {
-            ui->titleLabel->setText(QString("%1 - %2").arg(album, title));
+            title = QString("%1 - %2").arg(album, title);
         } else {
-            ui->titleLabel->setText(QString("%1").arg(title));
+            title = QString("%1").arg(title);
         }
     }
+
+    ui->titleLabel->setText(title);
+
+    m_mediaControl->setMetadata(title, artist, album);
 }
 
 void MainWindow::localSocketPlayAudioFiles(QVariant audioFilesVariant)
@@ -510,10 +523,14 @@ void MainWindow::initConnections()
         }
         QVariant coverArt(metadata.value(QMediaMetaData::ThumbnailImage));
         if (!coverArt.isNull()) {
-            ui->coverLabel->setPixmap(QPixmap::fromImage(coverArt.value<QImage>()));
+            QImage coverImage = coverArt.value<QImage>();
+            ui->coverLabel->setPixmap(QPixmap::fromImage(coverImage));
+            m_mediaControl->setCoverArt(coverImage);
         } else {
             qDebug() << "No ThumbnailImage!" << metadata.keys();
             ui->coverLabel->setPixmap(QPixmap(":/icons/icons/media-album-cover.svg"));
+            QIcon appIcon(QStringLiteral(":/icons/icons/app-icon.svg"));
+            m_mediaControl->setCoverArt(appIcon.pixmap(QSize(256, 256)).toImage());
         }
     });
     connect(m_playlistManager, &PlaylistManager::currentIndexChanged, this, [=](int index){
@@ -525,6 +542,7 @@ void MainWindow::initConnections()
         if (m_mediaPlayer->duration() != 0) {
             ui->playbackProgressIndicator->setPosition(pos);
             m_taskbarManager->setProgressValue(pos);
+            m_mediaControl->setPosition(pos, m_mediaPlayer->duration());
         }
 
         if (m_lrcbar->isVisible() || m_lyricsWidget->isVisible()) {
@@ -568,10 +586,15 @@ void MainWindow::initConnections()
         switch (newState) {
         case QMediaPlayer::PlayingState:
             ui->playBtn->setIcon(QIcon(":/icons/icons/media-playback-pause.png"));
+            m_mediaControl->setPlaybackState(1);
             break;
         case QMediaPlayer::StoppedState:
+            ui->playBtn->setIcon(QIcon(":/icons/icons/media-playback-start.png"));
+            m_mediaControl->setPlaybackState(0);
+            break;
         case QMediaPlayer::PausedState:
             ui->playBtn->setIcon(QIcon(":/icons/icons/media-playback-start.png"));
+            m_mediaControl->setPlaybackState(2);
             break;
         }
         m_taskbarManager->setPlaybackState(newState);
@@ -625,6 +648,33 @@ void MainWindow::initConnections()
 
     connect(m_taskbarManager, &TaskBarManager::skipForward, this, [this](){
         on_nextBtn_clicked();
+    });
+
+    connect(m_mediaControl, &WinMediaControl::playRequested, this, [this](){
+        if (QList<QMediaPlayer::PlaybackState> {QMediaPlayer::PausedState, QMediaPlayer::StoppedState}
+                .contains(m_mediaPlayer->playbackState())) {
+            m_mediaPlayer->play();
+        }
+    });
+
+    connect(m_mediaControl, &WinMediaControl::pauseRequested, this, [this](){
+        m_mediaPlayer->pause();
+    });
+
+    connect(m_mediaControl, &WinMediaControl::stopRequested, this, [this](){
+        m_mediaPlayer->stop();
+    });
+
+    connect(m_mediaControl, &WinMediaControl::nextRequested, this, [this](){
+        on_nextBtn_clicked();
+    });
+
+    connect(m_mediaControl, &WinMediaControl::previousRequested, this, [this](){
+        on_prevBtn_clicked();
+    });
+
+    connect(m_mediaControl, &WinMediaControl::seekRequested, this, [this](qint64 positionMs){
+        m_mediaPlayer->setPosition(positionMs);
     });
 
     connect(m_mediaPlayer, &QMediaPlayer::errorOccurred, this, [=](QMediaPlayer::Error error, const QString &errorString) {

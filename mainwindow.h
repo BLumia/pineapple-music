@@ -25,6 +25,7 @@ class LyricsManager;
 class LyricsWidget;
 class PlaylistManager;
 class TaskBarManager;
+class WinMediaControl;
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
@@ -112,6 +113,7 @@ private:
     QPropertyAnimation *m_fadeOutAnimation;
     PlaylistManager *m_playlistManager;
     TaskBarManager *m_taskbarManager;
+    WinMediaControl *m_mediaControl;
 
     void initUiAndAnimation();
     void initConnections();

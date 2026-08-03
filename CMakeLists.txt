@@ -48,6 +48,7 @@ set (PMUSIC_CPP_FILES
     fftspectrum.cpp
     playbackprogressindicator.cpp
     lyricswidget.cpp
+    winmediacontrol.cpp
 )
 
 set (PMUSIC_HEADER_FILES
@@ -60,6 +61,7 @@ set (PMUSIC_HEADER_FILES
     fftspectrum.h
     playbackprogressindicator.h
     taskbarmanager.h
+    winmediacontrol.h
     lyricswidget.h
 )
 
@@ -88,6 +90,7 @@ TS_FILES
 if (WIN32)
     target_sources(${EXE_NAME} PRIVATE assets/pineapple-music.rc)
     target_sources(${EXE_NAME} PRIVATE taskbarmanager.cpp)
+    target_link_libraries(${EXE_NAME} PRIVATE runtimeobject ole32)
 else ()
     target_sources(${EXE_NAME} PRIVATE taskbarmanager_dummy.cpp)
 endif ()
