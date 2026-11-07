@@ -2,16 +2,12 @@ name: Windows CI
 
 on: [push, pull_request, workflow_dispatch]
 
+env:
+  QT_VERSION: '6.12.0'
+  FFMPEG_VERSION: '9.0.1' # MUST match to the version that Qt uses: https://doc.qt.io/qt-6/qtmultimedia-attribution-ffmpeg.html
+
 jobs:
   msvc-cmake-build:
-  
-    strategy:
-      matrix:
-        include:
-          - qt_ver: '6.10.3'
-            vs: '2022'
-            aqt_arch: 'win64_msvc2022_64'
-            msvc_arch: 'x64'
 
     runs-on: windows-2022
 
@@ -20,18 +16,20 @@ jobs:
     - name: Install Qt
       uses: jurplel/install-qt-action@v4
       with:
-        arch: ${{ matrix.aqt_arch }}
-        version: ${{ matrix.qt_ver }}
+        arch: win64_msvc2022_64
+        version: ${{ env.QT_VERSION }}
         modules: 'qtmultimedia'
+        cache: true
+        aqtsource: 'aqtinstall @ git+https://github.com/miurahr/aqtinstall@16db45a70b5905ad596941b223469bc86a56901e'
     - name: Build
       shell: cmd
       run: |
         :: ------ env ------
         set PWD=%cd%
-        set VS=${{ matrix.vs }}
+        set VS=2022
         set VCVARS="C:\Program Files (x86)\Microsoft Visual Studio\%VS%\Enterprise\VC\Auxiliary\Build\vcvarsall.bat"
         if not exist %VCVARS% set VCVARS="C:\Program Files\Microsoft Visual Studio\%VS%\Enterprise\VC\Auxiliary\Build\vcvarsall.bat"
-        call %VCVARS% ${{ matrix.msvc_arch }}
+        call %VCVARS% x64
         :: ------ dep ------
         set CMAKE_PREFIX_PATH=%PWD%/dependencies_bin
         mkdir dependencies_src
@@ -41,9 +39,9 @@ jobs:
         cmake --build build_dependencies/extra-cmake-modules --config Release --target=install || goto :error
         echo ::endgroup::
         echo ::group::===== FFmpeg =====
-        curl -fsSL -o ffmpeg-shared.7z https://github.com/GyanD/codexffmpeg/releases/download/7.1.1/ffmpeg-7.1.1-full_build-shared.7z
+        curl -fsSL -o ffmpeg-shared.7z https://github.com/GyanD/codexffmpeg/releases/download/${{ env.FFMPEG_VERSION }}/ffmpeg-${{ env.FFMPEG_VERSION }}-full_build-shared.7z
         7z x ffmpeg-shared.7z -y -o"dependencies_src"
-        set FFMPEG_ROOT=%PWD%\dependencies_src\ffmpeg-7.1.1-full_build-shared
+        set FFMPEG_ROOT=%PWD%\dependencies_src\ffmpeg-${{ env.FFMPEG_VERSION }}-full_build-shared
         echo ::endgroup::
         echo ::group::===== Gperf (required by KCodecs) =====
         choco install gperf
@@ -70,5 +68,5 @@ jobs:
         exit /B 0
     - uses: actions/upload-artifact@v6
       with:
-        name: "${{ matrix.aqt_arch }}-qt${{ matrix.qt_ver }}-cmake-package"
+        name: "win64_msvc2022_64-qt${{ env.QT_VERSION }}-cmake-package"
         path: build/bin/*
